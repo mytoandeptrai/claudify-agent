@@ -8,7 +8,8 @@
 
 ## Requirements
 - `#### ADDED|MODIFIED|REMOVED Requirement: <name>` containing SHALL or MUST.
-- Each has scenarios GIVEN / WHEN / THEN with concrete values: at least one happy path and one failure.
+- Each has ACs `- AC-<n> <name>: GIVEN / WHEN / THEN` with concrete values: at least one happy path and one failure.
+- AC IDs are per capability, never reused; tests name them as `<capability>/AC-<n>` (checked by `node .claude/scripts/spec-check.mjs`).
 
 ## Tasks
 - Each task fits in 2-4 hours, lists files/packages touched and its DoD.

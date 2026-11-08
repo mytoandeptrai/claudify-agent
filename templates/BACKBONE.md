@@ -14,6 +14,12 @@ Last synced: <commit> (<date>)
 |---|---|
 | <path> | <what lives there> |
 
+## Domain glossary
+<!-- The nouns of the business, as the team says them. Code, specs and tests use these names. -->
+| Term | Meaning | States / relations |
+|---|---|---|
+| <Order> | <one customer purchase> | <draft → paid → cancelled; has many OrderItem> |
+
 ## Docs index
 | Doc | About | Status |
 |---|---|---|

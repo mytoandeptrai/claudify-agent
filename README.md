@@ -96,6 +96,13 @@ spec/
     └── data-export.md          ← current truth, merged on archive
 ```
 
+### Traceability (spec ↔ test)
+
+- Every acceptance criterion has an ID per capability: `- AC-2 expired QR: GIVEN ... WHEN ... THEN ...` in `spec/specs/refund.md` is `refund/AC-2`.
+- `/spec-apply` names tests with that ID: `describe("refund/AC-2: expired QR is refunded", ...)`.
+- `node .claude/scripts/spec-check.mjs [spec/changes/<name>.md]` lists ACs with no test (zero tokens, works in multi-repo workspaces). `/spec-archive` runs it before merging.
+- `BACKBONE.md` has a **Domain glossary** (Order, Payment, states...) so specs, code and tests use the same names.
+
 ### Example: a feature, end to end
 
 ```text

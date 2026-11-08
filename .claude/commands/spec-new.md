@@ -22,19 +22,22 @@ Status: draft | Depends on: <change or none>
 ### <capability> (new | modified)
 #### ADDED Requirement: <name>
 <statement with SHALL/MUST>
-- Scenario <name>: GIVEN ... WHEN ... THEN ...
+- AC-1 <name>: GIVEN ... WHEN ... THEN ...
+- AC-2 <name>: GIVEN ... WHEN ... THEN ...
 #### MODIFIED Requirement: <existing name>
-<full new text, not just the diff>
+<full new text and its ACs, not just the diff>
 #### REMOVED Requirement: <existing name>
 <reason>
 ## Design
 <only decisions not obvious from the code: data flow, schema, API, edge cases. Omit section if trivial.>
 ## Risks
 ## Tasks
-- [ ] 1. <task> — files: ... — DoD: ...
+- [ ] 1. <task> — files: ... — covers: <capability>/AC-1, AC-2 — DoD: ...
 ```
 
-4. Keep the whole file under ~800 words, plus ~300 per extra capability. No restating config, docs or code; link them.
+4. AC IDs: numbered per capability and never reused. New ACs continue after the highest `AC-<n>` in `spec/specs/<capability>.md`; a MODIFIED requirement keeps its existing AC IDs. The full ID is `<capability>/AC-<n>`.
+5. Use the terms from the Domain glossary in `BACKBONE.md`. A new domain term → add it to the glossary in the same step.
+6. Keep the whole file under ~800 words, plus ~300 per extra capability. No restating config, docs or code; link them.
    If it still does not fit (e.g. more than 4 capabilities), propose splitting into smaller changes with `Depends on:` instead of one giant spec.
-5. Add the change as one line under "Open changes" in `BACKBONE.md`.
-6. Do not write code. Finish by showing the task list and asking me to approve before `/spec-apply`.
+7. Add the change as one line under "Open changes" in `BACKBONE.md`.
+8. Do not write code. Finish by showing the task list and asking me to approve before `/spec-apply`.

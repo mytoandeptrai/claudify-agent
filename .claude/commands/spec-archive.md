@@ -6,8 +6,9 @@ argument-hint: <change-name>
 Archive spec change: $ARGUMENTS
 
 1. Read `spec/changes/<change-name>.md`. Refuse if any task is unchecked; list them.
+   Run `node .claude/scripts/spec-check.mjs spec/changes/<change-name>.md`. If an AC has no test, list it and ask me: add the test, or archive anyway (I accept the gap).
 2. For each `### <capability>` block under Requirements, update `spec/specs/<capability>.md` (create if new):
-   - Keep only Requirements and Scenarios: the current truth of the system, no history, no tasks.
+   - Keep only Requirements and their ACs (with IDs unchanged): the current truth of the system, no history, no tasks.
    - ADDED → append. MODIFIED → replace the requirement of the same name in full. REMOVED → delete it.
    - If a MODIFIED/REMOVED name does not exist in the backbone, stop and ask instead of guessing.
 3. Move the change file to `spec/changes/archive/YYYY-MM-DD-<change-name>.md`.

@@ -96,6 +96,13 @@ spec/
     └── data-export.md          ← sự thật hiện tại, gộp vào khi archive
 ```
 
+### Truy vết (spec ↔ test)
+
+- Mỗi acceptance criterion có ID theo capability: dòng `- AC-2 QR hết hạn: GIVEN ... WHEN ... THEN ...` trong `spec/specs/refund.md` là `refund/AC-2`.
+- `/spec-apply` đặt tên test chứa ID đó: `describe("refund/AC-2: QR hết hạn thì hoàn tiền", ...)`.
+- `node .claude/scripts/spec-check.mjs [spec/changes/<tên>.md]` liệt kê AC chưa có test (không tốn token, chạy được cả workspace nhiều repo). `/spec-archive` tự chạy trước khi gộp.
+- `BACKBONE.md` có **Domain glossary** (Order, Payment, các trạng thái...) để spec, code và test dùng cùng một tên.
+
 ### Ví dụ: một feature từ đầu tới cuối
 
 ```text
