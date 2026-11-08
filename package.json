@@ -1,0 +1,32 @@
+{
+  "name": "claudify",
+  "version": "1.0.0",
+  "description": "Enterprise-grade workflow & context optimization framework for Claude Code, Claude Desktop, and AI coding agents.",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "claudify": "./bin/cli.js"
+  },
+  "scripts": {
+    "lint": "eslint . --format=stylish",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "validate": "node .claude/scripts/auto-validate.js",
+    "security": "node .claude/scripts/security-scan.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "ai-agent",
+    "mcp",
+    "developer-tools",
+    "token-optimization",
+    "context-management"
+  ],
+  "author": "mytoandeptrai <mytoandn@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
