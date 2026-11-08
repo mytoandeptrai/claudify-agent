@@ -1,6 +1,6 @@
 {
   "name": "claudify-agent",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Enterprise-grade workflow & context optimization framework for Claude Code, Claude Desktop, and AI coding agents.",
   "repository": {
     "type": "git",
