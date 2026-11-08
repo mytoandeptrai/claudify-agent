@@ -18,4 +18,10 @@ Draft or refresh `BACKBONE.md` at the project root. Notes from me: $ARGUMENTS
 3. Keep it under ~80 lines. Link, never copy.
 4. List what you could not determine as questions, batched in one message.
 5. Set `Last synced: <HEAD short sha> (<date>)` so `/backbone-sync` can diff from here.
-6. Show the full diff and wait for my approval before writing.
+6. Slim `CLAUDE.md`: it is loaded every session too, so project facts in it are paid twice. Only touch content OUTSIDE the `<!-- claudify:start -->`…`<!-- claudify:end -->` block. If that content is more than ~30 lines, propose:
+   - project facts (overview, repos, structure, commands) → the matching `BACKBONE.md` section;
+   - must-follow rules and known traps → `BACKBONE.md` Invariants;
+   - long procedures (deploy, onboarding, runbooks) → keep or move to a doc under `docs/`, linked from the Docs index;
+   - AI working rules specific to this project → keep in `CLAUDE.md`.
+   Show a table "original line range → destination" so nothing disappears silently. Never drop content that has no destination; when unsure, keep it in `CLAUDE.md`.
+7. Show the full diff (`BACKBONE.md`, and `CLAUDE.md` / new docs if slimming) and wait for my approval before writing. If I decline the slimming, write only `BACKBONE.md`.

@@ -17,4 +17,5 @@ Sync `BACKBONE.md` with the code as it is now. Focus: $ARGUMENTS
    - Open changes: entries whose `spec/changes/*.md` is gone or done.
 3. Also compare with `spec/specs/*.md` for the touched areas. Report code that contradicts an archived requirement, but do not edit specs: that is my call (fix the code or open a change).
 4. Ask me about anything you cannot decide from evidence, batched in one message. Never invent invariants.
-5. Show the `BACKBONE.md` diff, including `Last synced: <HEAD short sha> (<date>)`, and wait for my approval before writing.
+5. If `CLAUDE.md` outside the claudify block grew past ~30 lines or repeats backbone facts, propose slimming it exactly as in step 6 of `.claude/commands/backbone-init.md`.
+6. Show the diff (`BACKBONE.md` including `Last synced: <HEAD short sha> (<date>)`, plus `CLAUDE.md` if slimming) and wait for my approval before writing.
