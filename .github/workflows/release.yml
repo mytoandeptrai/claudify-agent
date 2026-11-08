@@ -26,8 +26,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) needs npm >= 11.5.1
+      - name: Update npm
+        run: npm install -g npm@latest
 
       - name: Install & Verify
         run: |
@@ -45,8 +49,6 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Push Version Commit & Tag
         run: git push origin HEAD:main --follow-tags
