@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Auto-Validate Script
- * Runs local verification commands to ensure zero-token error detection.
+ * Multi-Language Auto-Validate Hook
+ * Supports TypeScript/JS, Go, and Solidity (Foundry/Hardhat)
  */
 
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 
-console.log('⚡ Running Claudify Local Verification Pipeline...\n');
+console.log('⚡ Running Claudify Multi-Language Verification Pipeline...\n');
 
 let hasErrors = false;
 
@@ -26,25 +26,44 @@ function runStep(name, command) {
   }
 }
 
-// 1. Lint check
-if (existsSync('eslint.config.js') || existsSync('.eslintrc.json')) {
-  runStep('ESLint Syntax & Formatting', 'npm run lint');
-} else {
-  console.log('ℹ️ [Skip] ESLint configuration not found');
+// 1. Golang Pipeline
+if (existsSync('go.mod')) {
+  console.log('🐹 Detected Go Project');
+  runStep('Go Vet Static Analysis', 'go vet ./...');
+  try {
+    execSync('golangci-lint --version', { stdio: 'ignore' });
+    runStep('GolangCI-Lint', 'golangci-lint run ./...');
+  } catch {
+    // Optional if not installed
+  }
 }
 
-// 2. TypeScript typecheck
-if (existsSync('tsconfig.json')) {
-  runStep('TypeScript Type Check', 'npm run typecheck');
-} else {
-  console.log('ℹ️ [Skip] tsconfig.json not found');
+// 2. Solidity / Smart Contract Pipeline
+if (existsSync('foundry.toml')) {
+  console.log('⛓️ Detected Foundry Smart Contract Project');
+  runStep('Foundry Build & Compilation', 'forge build');
+  runStep('Foundry Tests', 'forge test');
+} else if (existsSync('hardhat.config.js') || existsSync('hardhat.config.ts')) {
+  console.log('⛓️ Detected Hardhat Smart Contract Project');
+  runStep('Hardhat Compile', 'npx hardhat compile');
+  runStep('Hardhat Test', 'npx hardhat test');
+}
+
+// 3. Node.js / TypeScript Pipeline
+if (existsSync('package.json')) {
+  if (existsSync('eslint.config.js') || existsSync('.eslintrc.json')) {
+    runStep('ESLint Syntax & Formatting', 'npm run lint');
+  }
+  if (existsSync('tsconfig.json')) {
+    runStep('TypeScript Type Check', 'npm run typecheck');
+  }
 }
 
 console.log('\n----------------------------------------');
 if (hasErrors) {
-  console.error('❌ Verification failed. Please address the issues listed above.');
+  console.error('❌ Verification failed. Fix issues before concluding the task.');
   process.exit(1);
 } else {
-  console.log('🎉 All local checks passed cleanly (0 LLM tokens spent)!');
+  console.log('🎉 All language checks passed cleanly (0 LLM tokens spent)!');
   process.exit(0);
 }

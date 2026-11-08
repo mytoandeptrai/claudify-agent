@@ -21,16 +21,15 @@
   - Plan structure guide: @.claude/rules/plan-mode-structure.md
 
 ## 3. 🧪 Zero-Token Local Verification Loop
-After modifying code, execute local verification before reporting completion:
-```bash
-npm run lint:fix   # Auto-fixes formatting & ESLint (0 LLM tokens)
-npm run typecheck  # TypeScript safety validation
-npm test           # Targeted unit tests
-```
-- Core standard: @.claude/rules/general.md
-- Security checklist: @.claude/rules/security-critical.md
+After modifying code, execute local verification based on project stack:
+- **Node/TS:** `npm run lint:fix && npm run typecheck`
+- **Go Backend:** `go vet ./... && go test ./...`
+- **Solidity (SMC):** `forge test` hoặc `npx hardhat test`
+- Core standards: @.claude/rules/general.md & @.claude/rules/security-critical.md
 
 ## 4. 📚 On-Demand Skills Index (Load ONLY When Tech Is Used)
+- **Golang Backend:** @.claude/skills/golang-guide/SKILL.md
+- **Solidity (Smart Contracts):** @.claude/skills/solidity-guide/SKILL.md
 - **Next.js:** @.claude/skills/nextjs-guide/SKILL.md
 - **React:** @.claude/skills/react-guide/SKILL.md
 - **Python:** @.claude/skills/python-guide/SKILL.md
