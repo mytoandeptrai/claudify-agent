@@ -17,7 +17,9 @@ Draft or refresh `BACKBONE.md` at the project root. Notes from me: $ARGUMENTS
    - Invariants: only rules found in docs or that I confirm. Never invent business rules.
 3. Keep it under ~80 lines. Link, never copy.
 4. List what you could not determine as questions, batched in one message.
-5. Set `Last synced: <HEAD short sha> (<date>)` so `/backbone-sync` can diff from here.
+5. Set the `Last synced:` line so `/backbone-sync` can diff from here:
+   - single repo: `Last synced: <date> | <HEAD short sha>`;
+   - multi-repo workspace (root is not a git repo): `Last synced: <date> | <repo-dir>@<sha> <repo-dir>@<sha> ...`, one entry per sub-repo.
 6. Slim `CLAUDE.md`: it is loaded every session too, so project facts in it are paid twice. Only touch content OUTSIDE the `<!-- claudify:start -->`…`<!-- claudify:end -->` block. If that content is more than ~30 lines, propose:
    - project facts (overview, repos, structure, commands) → the matching `BACKBONE.md` section;
    - must-follow rules and known traps → `BACKBONE.md` Invariants;

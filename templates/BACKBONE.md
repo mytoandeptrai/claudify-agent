@@ -3,7 +3,7 @@
 > Loaded every session. A map, not documentation: link to details, never copy them. Keep under ~80 lines.
 > Fill with `/backbone-init`; kept in sync by `/spec-new`, `/spec-archive` and `/learn`; after work done without specs, run `/backbone-sync`.
 
-Last synced: <commit> (<date>)
+Last synced: <date> | <sha>   (multi-repo: <date> | <repo>@<sha> <repo>@<sha> ...)
 
 ## Overview
 - What: <one or two lines: what the system does and for whom>
