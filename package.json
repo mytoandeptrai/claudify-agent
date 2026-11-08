@@ -9,8 +9,8 @@
   "type": "module",
   "main": "bin/cli.js",
   "bin": {
-    "claudify-agent": "./bin/cli.js",
-    "claudify": "./bin/cli.js"
+    "claudify-agent": "bin/cli.js",
+    "claudify": "bin/cli.js"
   },
   "files": [
     "CLAUDE.md",
