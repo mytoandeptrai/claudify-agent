@@ -36,7 +36,6 @@ After modifying code, execute local verification based on project stack:
 - **React:** @.claude/skills/react-guide/SKILL.md
 - **Python:** @.claude/skills/python-guide/SKILL.md
 - **Vite:** @.claude/skills/vite-guide/SKILL.md
-- **Electron:** @.claude/skills/electron-guide/SKILL.md
 - **MCP Mastery:** @.claude/skills/mcp-mastery/SKILL.md
 - **Tool Selection:** @.claude/skills/tool-selection/SKILL.md
 - **Debug Optimizer:** @.claude/skills/debug-optimizer/SKILL.md
