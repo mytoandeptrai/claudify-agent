@@ -31,7 +31,7 @@ for (const pattern of DANGEROUS_PATTERNS) {
       console.warn(`⚠️ Potential secret detected (${pattern.name}):\n${result}\n`);
       leakFound = true;
     }
-  } catch (_e) {
+  } catch {
     // Exit code 1 means pattern not found (safe)
   }
 }

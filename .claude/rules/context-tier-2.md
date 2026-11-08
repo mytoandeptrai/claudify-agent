@@ -140,7 +140,7 @@ export function Button({ variant = 'primary', children }: Props) {
 **Loaded Context**:
 ```
 ## Performance Optimization
-- Profile BEFORE optimizing (cursor-ide-browser or user-chrome-devtools)
+- Profile BEFORE optimizing (claude-in-chrome or chrome-devtools)
 - Use React.memo for expensive components
 - Implement code splitting for large bundles
 - Lazy load non-critical components
@@ -255,7 +255,7 @@ export function Button({ variant = 'primary', children }: Props) {
 1. Load ONLY relevant Tier 2 context based on triggers
 2. DO NOT load multiple Tier 2 contexts unless task spans multiple areas
 3. If task spans multiple areas, load summaries only
-4. Agent discovers details via search tools (Grep, SemanticSearch)
+4. Agent discovers details via search tools (Grep, Explore (quick))
 ```
 
 **Example**:

@@ -1,12 +1,31 @@
-# SKILL.md: Debug Mode Optimizer
+---
+name: debug-optimizer
+description: Coordinate tools, MCP servers, subagents and validation hooks for debugging and multi-step tasks. Use when investigating a bug, a failing test, or a task spanning many files.
+---
+
+# SKILL.md: Debug Optimizer
 
 ## Description
-Automatic optimization of debug mode workflows for maximum efficiency. Activates automatically in debug mode to coordinate tools, MCPs, skills, hooks, and rules.
+Automatic optimization of debugging and multi-step workflows for maximum efficiency. Coordinates tools, MCPs, skills, hooks, and rules.
 
 ## When to Use (Automatic Activation)
-**This skill activates AUTOMATICALLY in debug mode for ALL tasks.**
+**This skill activates AUTOMATICALLY for debugging and multi-step tasks.**
 
 **Purpose**: Coordinate all optimization mechanisms to minimize task completion time and token usage while maximizing quality.
+
+---
+
+## Root Cause Debugging Protocol
+
+1. **Reproduce & Isolate:** Recreate the exact failure with a minimal reproduction or a single targeted test.
+2. **Inspect & Trace:** Read actual runtime logs, stack traces, and variable state instead of guessing.
+3. **Hypothesize & Form Minimal Fix:** Identify the root mechanism of the failure. Make the smallest diff that fully fixes it.
+4. **Regression Prevention:** Add a targeted regression test proving the bug is gone and adjacent modules still work.
+
+**Never**:
+- ❌ Wrap code in `try-catch` without handling or logging the error
+- ❌ Silence TypeScript errors with `@ts-ignore` or `as any`
+- ❌ Write sprawling test fixtures when a focused unit test suffices
 
 ---
 
@@ -36,19 +55,19 @@ Task analysis → Select optimal tools based on:
 **Automatic Triggers**:
 ```
 File patterns + Keywords + Task type → Select optimal MCPs:
-- components/**, "UI" → cursor-ide-browser
-- __tests__/**, "E2E" → user-playwright
-- "PR", "issue" → user-github
-- "lint" → user-ESLint
-- "docs", "how to" → user-context7
-- "performance" → user-chrome-devtools
+- components/**, "UI" → claude-in-chrome
+- __tests__/**, "E2E" → playwright
+- "PR", "issue" → github
+- "lint" → eslint
+- "docs", "how to" → context7
+- "performance" → chrome-devtools
 ```
 
 **Optimization Rules**:
 ```
-✓ ALWAYS run user-ESLint after code changes (cheap, high value)
-✓ ALWAYS fetch user-context7 before library implementation (prevents errors)
-✓ Use cursor-ide-browser ONLY when visual verification essential
+✓ ALWAYS run eslint after code changes (cheap, high value)
+✓ ALWAYS fetch context7 before library implementation (prevents errors)
+✓ Use claude-in-chrome ONLY when visual verification essential
 ✓ Chain MCPs automatically for complex workflows
 ✓ Track MCP usage and cost for optimization
 ```
@@ -67,8 +86,7 @@ Task complexity analysis → Launch parallel subagents:
 
 **Configuration** (Automatic):
 ```yaml
-model: "fast"  # Cost optimization
-readonly: true  # Safety
+model: "haiku"  # Cost optimization
 run_in_background: true  # Non-blocking
 timeout: 120s  # Time-box per subagent
 max_parallel: 4  # Diminishing returns after 4
@@ -101,25 +119,28 @@ Task keywords + File patterns → Load relevant Tier 2 context:
 ### 5. Hook-Based Validation Optimization
 **Automatic Triggers**:
 ```
-After code changes (after_code_change hook):
-- auto-lint-fix → Fix lint issues first
-- auto-validate → Unified validation (lint + typecheck + tests + MCP)
+After each Edit/Write (PostToolUse hook):
+- auto-lint-fix → Fix lint issues in the edited file
 
-After plan mode (plan_mode_exit hook):
+When Claude finishes a response (Stop hook):
+- auto-validate → Unified validation (lint + typecheck + tests + MCP)
+- auto-security-review → Scan written code for vulnerabilities
 - plan-quality-tracker → Track metrics and provide feedback
+
+At session start (SessionStart hook):
+- auto-learning-review → Weekly learning report from plan metrics
 ```
 
 **Validation Pipeline** (Automatic):
 ```
-1. Code change detected
-2. after_code_change hook triggers
-3. auto-lint-fix: Run ESLint, auto-fix
-4. auto-validate: 
+1. Edit/Write → PostToolUse hook → auto-lint-fix (ESLint --fix on that file)
+2. Claude tries to stop → Stop hook → auto-validate:
    - Lint check
    - Typecheck
    - Run tests
    - Validate MCP tools
-5. Report results to user
+3. Failures block the stop and are sent back to Claude to fix
+4. Report results to user
 ```
 
 ---
@@ -142,10 +163,10 @@ Automatic Optimizations:
    - API context
 
 3. **MCP Chain**:
-   - user-context7: Fetch JWT library docs
+   - context7: Fetch JWT library docs
    - Implement feature
-   - user-ESLint: Auto-lint
-   - user-github: Create PR
+   - eslint: Auto-lint
+   - github: Create PR
 
 4. **Validation Hooks**:
    - auto-lint-fix: Fix issues
@@ -172,11 +193,11 @@ Automatic Optimizations:
    - Database context (if DB-related)
 
 3. **MCP Chain**:
-   - user-github: Fetch issue #456
-   - user-context7: Check payment docs (if needed)
+   - github: Fetch issue #456
+   - context7: Check payment docs (if needed)
    - Implement fix
-   - user-ESLint: Auto-lint
-   - user-github: Create PR
+   - eslint: Auto-lint
+   - github: Create PR
 
 4. **Validation Hooks**:
    - auto-lint-fix: Fix issues
@@ -203,10 +224,10 @@ Automatic Optimizations:
    - Testing context
 
 3. **MCP Chain**:
-   - user-context7: Fetch Drizzle docs
+   - context7: Fetch Drizzle docs
    - Implement migration (incremental)
-   - user-ESLint: Auto-lint after each change
-   - test-runner: Run tests after each change
+   - eslint: Auto-lint after each change
+   - auto-validate: Run tests after each change
 
 4. **Validation Hooks** (after each step):
    - auto-lint-fix: Fix issues
@@ -223,8 +244,8 @@ Time: 20-30 minutes (vs 60-90 manual)
 ```
 Monitor for error patterns:
 - ESLint errors → Trigger auto-lint-fix
-- Test failures → Trigger auto-validate with debug mode
-- Build errors → Fetch build docs via user-context7
+- Test failures → auto-validate blocks the stop and feeds failures back
+- Build errors → Fetch build docs via context7
 - Runtime errors → Trigger browser debugging
 ```
 
@@ -232,7 +253,7 @@ Monitor for error patterns:
 ```
 Error detected → Automatic response:
 1. Identify error type
-2. Fetch relevant docs (user-context7)
+2. Fetch relevant docs (context7)
 3. Implement fix
 4. Validate (lint + tests)
 5. If still failing → Escalate to human
@@ -269,8 +290,8 @@ Analyze metrics:
 ### Token Budget Allocation
 ```
 Tier 1 tools (Read, Glob, Grep): 40% of budget
-Tier 2 tools (SemanticSearch, StrReplace): 30% of budget
-Tier 3 tools (Task, Shell, ReadLints): 20% of budget
+Tier 2 tools (Explore (quick), Edit): 30% of budget
+Tier 3 tools (Agent, Bash, Lint check): 20% of budget
 Tier 4 tools (Parallel subagents, Browser MCP): 10% of budget
 ```
 
@@ -298,9 +319,9 @@ User: "Add dark mode toggle to settings page"
 2. Context loaded: UI/Styling
 
 3. MCP chain:
-   - user-context7: Tailwind dark mode docs
-   - cursor-ide-browser: Verify UI
-   - user-ESLint: Auto-lint
+   - context7: Tailwind dark mode docs
+   - claude-in-chrome: Verify UI
+   - eslint: Auto-lint
 
 4. Hooks:
    - auto-lint-fix: ✅ Passed
@@ -324,11 +345,11 @@ User: "Audit and improve dashboard performance"
 2. Context loaded: Performance
 
 3. MCP chain:
-   - user-chrome-devtools: Lighthouse audit
-   - cursor-ide-browser: CPU profiling
-   - user-context7: React optimization docs
+   - chrome-devtools: Lighthouse audit
+   - chrome-devtools: CPU profiling
+   - context7: React optimization docs
    - Implement optimizations
-   - user-chrome-devtools: Re-audit
+   - chrome-devtools: Re-audit
 
 4. Hooks:
    - auto-validate: ✅ All validations passed (MCP + tests)
@@ -352,14 +373,14 @@ User: "Review authentication for vulnerabilities"
 2. Context loaded: Security
 
 3. MCP chain:
-   - user-context7: OWASP auth guidelines
+   - context7: OWASP auth guidelines
    - Implement security fixes
-   - user-ESLint: Auto-lint
-   - test-runner: Run security tests
+   - eslint: Auto-lint
+   - auto-security-review: Scan written code
 
 4. Hooks:
    - auto-lint-fix: ✅ Fixed 3 issues
-   - test-runner: ✅ All tests pass
+   - auto-validate: ✅ All tests pass
 
 Result: 6 minutes, 5 vulnerabilities fixed
 ```
@@ -396,4 +417,4 @@ Result: 6 minutes, 5 vulnerabilities fixed
 
 ---
 
-**Note**: This skill activates automatically in debug mode. No manual intervention needed. All optimizations applied transparently to maximize efficiency.
+**Note**: This skill activates automatically for debugging and multi-step tasks. No manual intervention needed. All optimizations applied transparently to maximize efficiency.

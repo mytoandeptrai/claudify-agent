@@ -1,3 +1,8 @@
+---
+name: plan-mode-mastery
+description: Research, structure, validate and execute implementation plans in Plan Mode. Use when planning a non-trivial feature, refactor or migration.
+---
+
 # SKILL.md: Plan Mode Mastery
 
 ## Description
@@ -28,10 +33,10 @@ Comprehensive plan mode workflow with automatic research, validation, and execut
 ### Full Plan Mode Workflow
 
 1. **Pre-Plan Research** (2-3 minutes)
-   - SemanticSearch for patterns
+   - Explore (quick) for patterns
    - Parallel subagent exploration
-   - ReadLints check
-   - AskQuestion (batch) if needed
+   - Lint check check
+   - AskUserQuestion (batch) if needed
 
 2. **Plan Creation** (1-2 minutes)
    - Enhanced structure with tools
@@ -53,10 +58,10 @@ Comprehensive plan mode workflow with automatic research, validation, and execut
 ## Tool Integration
 
 ### Research Phase Tools
-- **SemanticSearch**: Find existing patterns
-- **Task (explore)**: Parallel codebase exploration
-- **ReadLints**: Check code health
-- **AskQuestion**: Batch clarifications
+- **Explore (quick)**: Find existing patterns
+- **Agent (Explore)**: Parallel codebase exploration
+- **Lint check**: Check code health
+- **AskUserQuestion**: Batch clarifications
 
 ### Planning Phase Tools
 - **CreatePlan**: Structured plan creation
@@ -64,15 +69,15 @@ Comprehensive plan mode workflow with automatic research, validation, and execut
 - **Checkpoints**: Strategic rollback points
 
 ### Execution Phase Tools
-- **Read/Write/StrReplace**: Implementation
-- **Shell**: Run tests and commands
-- **ReadLints**: Quality validation
-- **Task (subagents)**: Parallel work
+- **Read/Write/Edit**: Implementation
+- **Bash**: Run tests and commands
+- **Lint check**: Quality validation
+- **Agent (subagents)**: Parallel work
 
 ### Monitoring Tools
 - **TodoWrite**: Real-time progress
-- **/grind**: Iteration loops
-- **AskQuestion**: Blocker resolution
+- **Fix-and-retest loop**: Iteration loops
+- **AskUserQuestion**: Blocker resolution
 
 ## Examples
 
@@ -83,13 +88,13 @@ User: "Add user dashboard"
 Agent invokes /plan-mode-full:
 
 **Research Phase**:
-- SemanticSearch: "How are pages structured?"
-- Task (parallel):
+- Explore (quick): "How are pages structured?"
+- Agent (parallel):
   - "Find dashboard-like features"
   - "Find API route patterns"
   - "Find component patterns"
-- ReadLints: Check current health
-- AskQuestion: "Which widgets for MVP?" (batched)
+- Lint check: Check current health
+- AskUserQuestion: "Which widgets for MVP?" (batched)
 
 **Plan Phase**:
 Creates enhanced plan with:
@@ -99,7 +104,7 @@ Creates enhanced plan with:
 - Time estimate: 45 minutes
 
 **Validation Phase**:
-- Task: "Validate plan feasibility"
+- Agent: "Validate plan feasibility"
 - Check: All files accessible
 - Verify: Tool availability
 - Result: PASS
@@ -107,7 +112,7 @@ Creates enhanced plan with:
 **Execution Phase**:
 - TodoWrite: Track 7 steps
 - Checkpoint: Before API changes
-- /grind loop: Fix test failures
+- fix-and-retest loop: Fix test failures
 - Progress updates: After each step
 
 ### Example 2: Complex Refactor
@@ -115,14 +120,14 @@ Creates enhanced plan with:
 User: "Refactor authentication system"
 
 **Research Phase**:
-- SemanticSearch: "How is auth implemented?"
-- Task (parallel x4):
+- Explore (quick): "How is auth implemented?"
+- Agent (parallel x4):
   - "Find JWT validation logic"
   - "Find session management"
   - "Find OAuth integrations"
   - "Find password hashing"
-- ReadLints: Check all auth files
-- AskQuestion: "Target auth method?"
+- Lint check: Check all auth files
+- AskUserQuestion: "Target auth method?"
 
 **Plan Phase**:
 - Summary: Migrate from JWT to sessions
@@ -132,7 +137,7 @@ User: "Refactor authentication system"
 - Time: 3 hours
 
 **Validation Phase**:
-- Task: Validate complexity
+- Agent: Validate complexity
 - Warning: High risk, suggest phased approach
 - Result: PASS with warnings
 
@@ -140,16 +145,16 @@ User: "Refactor authentication system"
 - TodoWrite: 12 steps tracked
 - Checkpoints: 3 (before breaking changes)
 - Adaptive re-plan: Discovered legacy code
-- /grind: Fixed auth edge cases
+- fix-and-retest: Fixed auth edge cases
 
 ### Example 3: Bug Fix
 
 User: "Fix authentication bug #123"
 
 **Research Phase**:
-- SemanticSearch: "How does auth flow work?"
-- Task: "Investigate bug #123"
-- ReadLints: Check auth files
+- Explore (quick): "How does auth flow work?"
+- Agent: "Investigate bug #123"
+- Lint check: Check auth files
 - Result: Token expiration issue found
 
 **Plan Phase**:
@@ -164,9 +169,9 @@ User: "Fix authentication bug #123"
 
 **Execution Phase**:
 - TodoWrite: 4 steps
-- StrReplace: Fix expiration logic
-- Shell: Run auth tests
-- ReadLints: Verify quality
+- Edit: Fix expiration logic
+- Bash: Run auth tests
+- Lint check: Verify quality
 - Complete: Bug fixed
 
 ## Best Practices
@@ -190,9 +195,9 @@ User: "Fix authentication bug #123"
 - Report blockers early
 
 ### 4. Iterate When Stuck
-- Use /grind for tests (max 5 iterations)
+- Use the fix-and-retest loop for tests (max 5 iterations)
 - Update scratchpad
-- AskQuestion if blocked
+- AskUserQuestion if blocked
 - Re-plan if >30% deviation
 
 ### 5. Time-Box Research
@@ -230,7 +235,7 @@ Good: Checkpoint before breaking changes
 
 **Solutions**:
 - Time-box to 3 minutes max
-- Use model="fast" for subagents
+- Use model="haiku" for subagents
 - Narrow target_directories
 - Accept "good enough" patterns
 
@@ -244,11 +249,11 @@ Good: Checkpoint before breaking changes
 - Revise time estimates
 
 ### Tests Not Passing
-**Problem**: /grind loop failing after 5 iterations
+**Problem**: fix-and-retest loop failing after 5 iterations
 
 **Solutions**:
 - Report BLOCKED with details
-- AskQuestion for guidance
+- AskUserQuestion for guidance
 - Re-plan approach
 - Check for missing dependencies
 

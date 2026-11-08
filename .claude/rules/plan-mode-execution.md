@@ -19,7 +19,7 @@ Create checkpoint before:
 
 ### Iteration Loops
 If tests fail:
-1. Use /grind automatically
+1. Use the fix-and-retest loop automatically
 2. Max 5 iterations
 3. Update scratchpad
 4. Report if BLOCKED
@@ -33,7 +33,7 @@ If deviation >30%:
 
 ### Quality Gates
 After EACH step:
-- ReadLints on modified files
+- Lint check on modified files
 - Fix introduced lints immediately
 - Run relevant tests
 - Update todos
@@ -93,13 +93,13 @@ Examples:
 ### Rollback Triggers
 
 **Automatic rollback if:**
-1. Tests fail after 5 /grind iterations
+1. Tests fail after 5 fix-and-retest iterations
 2. Critical linter errors introduced
 3. User requests rollback
 4. Agent detects critical error
 5. Data corruption detected
 
-## Iteration Loop (/grind)
+## Iteration Loop (fix-and-retest)
 
 ### When to Use
 - Tests failing
@@ -111,7 +111,7 @@ Examples:
 1. Run tests → identify failures
 2. Fix code → run tests again
 3. Repeat until pass or max 5 iterations
-4. Update scratchpad: `.cursor/scratchpad.md`
+4. Update scratchpad: `.claude/scratchpad.md`
 5. Report BLOCKED if stuck
 
 ### Scratchpad Format
@@ -196,28 +196,28 @@ Plan: "Add login button" (5 steps)
 Execution:
 ```
 ✅ Step 1: Research patterns
-   - Tool: SemanticSearch
-   - ReadLints: Clear
+   - Tool: Explore (quick)
+   - Lint check: Clear
    - TodoWrite: Updated
 
 ✅ Step 2: Add button to Header
-   - Tool: StrReplace
-   - ReadLints: Clear
+   - Tool: Edit
+   - Lint check: Clear
    - TodoWrite: Updated
 
 ✅ Step 3: Style button
    - Tool: Write
-   - ReadLints: Clear
+   - Lint check: Clear
    - TodoWrite: Updated
 
 ✅ Step 4: Add click handler
-   - Tool: StrReplace
+   - Tool: Edit
    - Tests: Pass
    - TodoWrite: Updated
 
 ✅ Step 5: Final validation
-   - Tool: ReadLints
-   - Tool: Shell (tests)
+   - Tool: Lint check
+   - Tool: Bash (tests)
    - All clear → COMPLETE
 ```
 
@@ -229,7 +229,7 @@ Execution:
 ```
 ❌ Tests failing: 2 failures
 
-→ Automatic /grind loop:
+→ Automatic fix-and-retest loop:
 
 Iteration 1:
 - Fix: Token validation logic

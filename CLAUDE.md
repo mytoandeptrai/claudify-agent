@@ -35,6 +35,7 @@ After modifying code, execute local verification based on project stack:
 - **Next.js:** @.claude/skills/nextjs-guide/SKILL.md
 - **React:** @.claude/skills/react-guide/SKILL.md
 - **Python:** @.claude/skills/python-guide/SKILL.md
+- **Security (OWASP):** @.claude/skills/security-guide/SKILL.md
 - **Vite:** @.claude/skills/vite-guide/SKILL.md
 - **MCP Mastery:** @.claude/skills/mcp-mastery/SKILL.md
 - **Tool Selection:** @.claude/skills/tool-selection/SKILL.md

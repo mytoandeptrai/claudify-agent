@@ -1,3 +1,8 @@
+---
+name: solidity-guide
+description: "Solidity and smart contract security: reentrancy, access control, gas optimization, Foundry/Hardhat verification. Use when writing or reviewing Solidity contracts."
+---
+
 # Solidity & Smart Contract (SMC) Security Skill
 
 ## 1. Smart Contract Security Mandates (Critical)

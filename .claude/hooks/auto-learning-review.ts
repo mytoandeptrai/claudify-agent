@@ -1,12 +1,14 @@
-// .cursor/hooks/auto-learning-review.ts
-// Automated weekly learning loop review - runs every 10 plans or weekly
+// .claude/hooks/auto-learning-review.ts
+// SessionStart hook — learning loop review over the last 10 tracked plans
 
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { readHookInput, stateDir } from "./lib/claude-hook.ts";
 
-const METRICS_FILE = join(process.cwd(), ".cursor/plan-metrics.json");
-const WEEKLY_REPORT_FILE = join(process.cwd(), ".cursor/weekly-learning-report.md");
-const ANTI_PATTERNS_FILE = join(process.cwd(), ".cursor/rules/anti-patterns.md");
+const input = await readHookInput();
+
+const METRICS_FILE = join(stateDir(input), "plan-metrics.json");
+const WEEKLY_REPORT_FILE = join(stateDir(input), "weekly-learning-report.md");
 
 interface PlanMetrics {
   plan_accuracy: number;
@@ -24,13 +26,6 @@ interface AntiPattern {
   lastOccurrence: string;
   suggestion: string;
 }
-
-// Read input from stdin (hook trigger)
-const stdin = await new Promise<string>((resolve) => {
-  let data = "";
-  process.stdin.on("data", (chunk) => (data += chunk));
-  process.stdin.on("end", () => resolve(data));
-});
 
 console.error("[Auto Learning Review] Starting automated review...");
 
@@ -66,7 +61,7 @@ recentMetrics.forEach(m => {
 
 // Identify repeated patterns (3+ occurrences)
 const repeatedPatterns: AntiPattern[] = Object.entries(patternCounts)
-  .filter(([_, count]) => count >= 3)
+  .filter(([, count]) => count >= 3)
   .map(([name, count]) => ({
     id: name.toLowerCase().replace(/\s+/g, '-'),
     name,
@@ -93,7 +88,7 @@ console.error(`[Auto Learning Review] Report generated: ${WEEKLY_REPORT_FILE}`);
 // Auto-update rules if patterns detected
 if (repeatedPatterns.length > 0) {
   console.error(`[Auto Learning Review] Detected ${repeatedPatterns.length} repeated patterns (3+ occurrences)`);
-  console.error("[Auto Learning Review] Review .cursor/weekly-learning-report.md for details");
+  console.error(`[Auto Learning Review] Review ${WEEKLY_REPORT_FILE} for details`);
 } else {
   console.error("[Auto Learning Review] No repeated patterns detected. Great job!");
 }
@@ -101,10 +96,10 @@ if (repeatedPatterns.length > 0) {
 function getSuggestionForPattern(patternName: string): string {
   const suggestions: Record<string, string> = {
     "Over-Engineering": "Follow tool escalation protocol: Tier 1 (Read/Glob/Grep) → Tier 2 → Tier 3 → Tier 4",
-    "Planning Without Research": "Always run SemanticSearch before creating plans. Spend 2-3 min on research.",
+    "Planning Without Research": "Always research with Grep/Glob and Explore subagents before creating plans. Spend 2-3 min on research.",
     "Repeated Execution Failures": "Add validation subagent before plan execution. Create checkpoints.",
     "MCP Overuse": "Use MCP tools only when essential. Prefer built-in tools for simple tasks.",
-    "Skipping Validation": "Enable auto-validate hook. Run ReadLints after EVERY code change.",
+    "Skipping Validation": "Keep the auto-validate Stop hook enabled. Run lint/typecheck after EVERY code change.",
     "Context Bloat": "Keep rules under 20 lines. Use references over content."
   };
   return suggestions[patternName] || "Review pattern in learning-loop skill documentation.";
@@ -124,7 +119,17 @@ function calculateTrend(metrics: PlanMetrics[]): "improving" | "stable" | "decli
   return "stable";
 }
 
-function generateReport(data: any): string {
+interface ReportData {
+  planCount: number;
+  avgAccuracy: number;
+  avgIterations: number;
+  avgEfficiency: number;
+  totalCost: number;
+  repeatedPatterns: AntiPattern[];
+  trend: "improving" | "stable" | "declining";
+}
+
+function generateReport(data: ReportData): string {
   const date = new Date().toISOString().split('T')[0];
   
   return `# Weekly Learning Report

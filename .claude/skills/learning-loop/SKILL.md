@@ -1,3 +1,8 @@
+---
+name: learning-loop
+description: Analyze plan metrics in .claude/plan-metrics.json to detect anti-patterns and repeated mistakes and suggest rule improvements. Use for weekly reviews or when plan accuracy drops.
+---
+
 # SKILL.md: Learning Loop
 
 ## Description
@@ -29,7 +34,7 @@ Analyzes plan metrics to identify patterns, detect repeated mistakes, and sugges
 
 1. **Load Metrics** (30s)
    ```bash
-   Read: .cursor/plan-metrics.json
+   Read: .claude/plan-metrics.json
    ```
    - Last 10-20 plan executions
    - Extract key metrics
@@ -62,7 +67,7 @@ Analyzes plan metrics to identify patterns, detect repeated mistakes, and sugges
    3. [Action item]
    
    ### Rule Update Suggestions
-   - Suggest updating: .cursor/rules/[file]
+   - Suggest updating: .claude/rules/[file]
    - Reason: [pattern detected]
    ```
 
@@ -81,8 +86,8 @@ The skill detects these anti-patterns automatically:
    - Fix: Follow tool escalation protocol
 
 2. **Planning Without Research** (Critical)
-   - Creating plans without SemanticSearch
-   - Detection: No SemanticSearch in last 3 plans
+   - Creating plans without Explore (quick)
+   - Detection: No Explore (quick) in last 3 plans
    - Fix: Always research before planning
 
 3. **Repeated Execution Failures** (Critical)
@@ -96,7 +101,7 @@ The skill detects these anti-patterns automatically:
    - Fix: Use MCP only when essential
 
 5. **Skipping Validation** (High)
-   - Not running ReadLints/tests
+   - Not running Lint check/tests
    - Detection: No validation tools in 3 plans
    - Fix: Auto-validate after changes
 
@@ -172,7 +177,7 @@ Agent detects patterns:
 ### 1. [CRITICAL] Planning Without Research
 **Occurrences**: 3 times in last 5 plans
 **Impact**: Avg accuracy 58% (vs 82% when researched)
-**Suggestion**: Always use SemanticSearch before planning
+**Suggestion**: Always use Explore (quick) before planning
 
 ### 2. [HIGH] Skipping Validation
 **Occurrences**: 4 times in last 5 plans
@@ -290,7 +295,7 @@ Good: Schedule follow-up review
 
 ### Key Metrics Tracked
 - `plan_accuracy`: % of plan followed correctly
-- `iteration_count`: Number of /grind loops
+- `iteration_count`: Number of fix-and-retest loops
 - `tool_efficiency`: Cost-weighted tool score
 - `parallel_subagents`: Number of parallel explorations
 - `mcp_usage`: MCP server utilization
@@ -303,6 +308,6 @@ Good: Schedule follow-up review
 
 ## Related Documentation
 - `AGENT-INSTRUCTION-BEST-PRACTICES.md` - Core research
-- `.cursor/hooks.config.json` - Configuration
-- `.cursor/plan-metrics.json` - Historical data
-- `.cursor/docs/PLAN-MODE-OPTIMIZATION.md` - Plan mode guide
+- `.claude/hooks.config.json` - Configuration
+- `.claude/plan-metrics.json` - Historical data
+- `.claude/docs/PLAN-MODE-OPTIMIZATION.md` - Plan mode guide

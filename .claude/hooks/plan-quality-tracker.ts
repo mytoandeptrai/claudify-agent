@@ -1,20 +1,18 @@
-// .cursor/hooks/plan-quality-tracker.ts
-// Unified plan metrics tracking with real tool usage and accuracy calculations
+// .claude/hooks/plan-quality-tracker.ts
+// Stop hook — plan metrics tracking from the real tool usage in the Claude Code transcript
 
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
-
-export {};
-
-interface StopHookInput {
-  conversation_id: string;
-  status: "completed" | "aborted" | "error";
-  loop_count: number;
-}
-
-interface StopHookOutput {
-  followup_message?: string;
-}
+import {
+  readHookInput,
+  loadCurrentTurn,
+  mcpServer,
+  stateDir,
+  notify,
+  done,
+  SUBAGENT_TOOLS,
+  type Turn,
+} from "./lib/claude-hook.ts";
 
 interface AntiPattern {
   id: string;
@@ -42,11 +40,8 @@ interface PlanMetrics {
   cost_estimate?: number;
   anti_patterns_detected?: string[];
   repeated_mistakes?: string[];
-}
-
-interface MCPEffectiveness {
-  usage: number;
-  success_rate: number;
+  session_id?: string;
+  turn_id?: string;
 }
 
 interface PatternAnalysis {
@@ -75,11 +70,12 @@ interface HooksConfig {
   };
 }
 
-const METRICS_FILE = join(process.cwd(), ".cursor/plan-metrics.json");
-const CONVERSATIONS_DIR = join(process.cwd(), ".cursor/conversations");
+const input = await readHookInput();
+
+const METRICS_FILE = join(stateDir(input), "plan-metrics.json");
 
 // Load configuration
-const configPath = join(process.cwd(), '.cursor/hooks.config.json');
+const configPath = join(stateDir(input), 'hooks.config.json');
 const config: HooksConfig = existsSync(configPath) 
   ? JSON.parse(readFileSync(configPath, 'utf-8')) 
   : {};
@@ -94,90 +90,25 @@ const planTrackingConfig = {
   enablePatternAnalysis: config.planTracking?.enablePatternAnalysis !== false
 };
 
-// Read input from stdin
-const stdin = await new Promise<string>((resolve) => {
-  let data = "";
-  process.stdin.on("data", (chunk) => (data += chunk));
-  process.stdin.on("end", () => resolve(data));
-});
-
-const input: StopHookInput = JSON.parse(stdin);
-
-console.error(`[Plan Tracker] Processing execution data for conversation ${input.conversation_id}...`);
+console.error(`[Plan Tracker] Processing execution data for session ${input.session_id}...`);
 
 // Helper functions
-function loadConversation(conversationId: string): any {
-  const conversationPath = join(CONVERSATIONS_DIR, `${conversationId}.json`);
-  if (!existsSync(conversationPath)) {
-    console.error("[Plan Tracker] ⚠ Conversation file not found");
-    return null;
-  }
-  
-  try {
-    return JSON.parse(readFileSync(conversationPath, 'utf-8'));
-  } catch (error) {
-    console.error("[Plan Tracker] Error loading conversation:", error);
-    return null;
-  }
+function extractToolCalls(turn: Turn): ToolCall[] {
+  return turn.toolUses.map(t => ({
+    name: t.name,
+    success: !t.isError,
+    mcp_server: mcpServer(t.name)
+  }));
 }
 
-function extractToolCalls(conversation: any): ToolCall[] {
-  const tools: ToolCall[] = [];
-  
-  if (!conversation?.messages) return tools;
-  
-  for (const message of conversation.messages) {
-    if (message.tool_calls) {
-      for (const toolCall of message.tool_calls) {
-        const toolName = toolCall.function?.name || 'unknown';
-        
-        // Determine if it's an MCP tool and which server
-        let mcpServer: string | undefined;
-        if (toolName.startsWith('browser_')) mcpServer = 'cursor-ide-browser';
-        else if (toolName.startsWith('github_')) mcpServer = 'user-github';
-        else if (toolName.includes('eslint')) mcpServer = 'user-ESLint';
-        else if (toolName.includes('context7')) mcpServer = 'user-context7';
-        else if (toolName.includes('chrome')) mcpServer = 'user-chrome-devtools';
-        else if (toolName.includes('playwright')) mcpServer = 'user-playwright';
-        else if (toolName.includes('selenium')) mcpServer = 'user-selenium';
-        else if (toolName.includes('dart')) mcpServer = 'user-dart';
-        else if (toolName.includes('stitch')) mcpServer = 'user-stitch';
-        else if (toolName.includes('shadcn')) mcpServer = 'user-shadcn';
-        
-        tools.push({
-          name: toolName,
-          success: true, // Simplified - would check actual results in production
-          mcp_server: mcpServer
-        });
-      }
-    }
-  }
-  
-  return tools;
+function countParallelSubagents(turn: Turn): number {
+  return turn.toolUses.filter(t => SUBAGENT_TOOLS.includes(t.name)).length;
 }
 
-function countParallelSubagents(conversation: any): number {
-  if (!conversation?.messages) return 0;
+function detectPlanType(turn: Turn): string {
+  if (turn.toolUses.some(t => t.name === 'ExitPlanMode')) return 'plan-mode';
   
-  let count = 0;
-  for (const message of conversation.messages) {
-    if (message.tool_calls) {
-      for (const toolCall of message.tool_calls) {
-        if (toolCall.function?.name === 'Task' || 
-            toolCall.function?.name?.includes('subagent')) {
-          count++;
-        }
-      }
-    }
-  }
-  
-  return count;
-}
-
-function detectPlanType(conversation: any): string {
-  if (!conversation?.messages) return 'unknown';
-  
-  const conversationText = JSON.stringify(conversation.messages).toLowerCase();
+  const conversationText = JSON.stringify(turn.entries).toLowerCase();
   
   if (conversationText.includes('plan mode')) return 'plan-mode';
   if (conversationText.includes('browser') || conversationText.includes('web')) return 'browser-automation';
@@ -190,39 +121,27 @@ function detectPlanType(conversation: any): string {
   return 'general';
 }
 
-function calculatePlanAccuracy(input: StopHookInput, conversation: any): number {
-  if (input.status !== "completed") return 0;
-  
-  // Base accuracy on loop count (fewer iterations = higher accuracy)
-  let baseAccuracy: number;
-  if (input.loop_count === 0) baseAccuracy = 100;
-  else if (input.loop_count <= 2) baseAccuracy = 85;
-  else if (input.loop_count <= 5) baseAccuracy = 70;
-  else baseAccuracy = 50;
-  
-  // Adjust based on tool usage patterns
-  const tools = extractToolCalls(conversation);
-  const failedTools = tools.filter(t => !t.success).length;
-  
-  if (failedTools > 0) {
-    baseAccuracy -= (failedTools * 5); // Penalty for failed tools
-  }
-  
-  return Math.max(0, Math.min(100, baseAccuracy));
+// Iterations = failed tool calls that had to be retried (failed tests, lint, edits...)
+function calculatePlanAccuracy(iterations: number): number {
+  // Fewer iterations = higher accuracy
+  if (iterations === 0) return 100;
+  if (iterations <= 2) return 85;
+  if (iterations <= 5) return 70;
+  return 50;
 }
 
 function calculateToolEfficiency(tools: ToolCall[]): number {
   if (tools.length === 0) return 75; // Neutral score if no tools
   
-  // Tier 1: Simple tools (Shell, Read, Write, Glob, Grep)
-  // Tier 2: Analysis (ReadLints, SemanticSearch)
-  // Tier 3: Complex (Task, WebSearch, WebFetch)
-  // Tier 4: MCP tools
+  // Tier 1: Simple tools (Bash, Read, Edit, Write, Glob, Grep)
+  // Tier 2: Analysis (LSP)
+  // Tier 3: Complex (Agent/Task subagents, WebSearch, WebFetch)
+  // Tier 4: MCP tools (mcp__*)
   
   const tierScores: Record<string, number> = {
-    'Shell': 100, 'Read': 100, 'Write': 100, 'Glob': 100, 'Grep': 100,
-    'ReadLints': 80, 'SemanticSearch': 80,
-    'Task': 60, 'WebSearch': 60, 'WebFetch': 60,
+    'Bash': 100, 'Read': 100, 'Edit': 100, 'MultiEdit': 100, 'Write': 100, 'Glob': 100, 'Grep': 100,
+    'LSP': 80,
+    'Agent': 60, 'Task': 60, 'WebSearch': 60, 'WebFetch': 60,
   };
   
   let totalScore = 0;
@@ -245,9 +164,9 @@ function calculateToolEfficiency(tools: ToolCall[]): number {
 function estimateCost(tools: ToolCall[]): number {
   // Estimated token cost per tool type
   const costEstimates: Record<string, number> = {
-    'Shell': 100, 'Read': 500, 'Write': 1000, 'Glob': 200, 'Grep': 300,
-    'ReadLints': 800, 'SemanticSearch': 1500,
-    'Task': 3000, 'WebSearch': 2000, 'WebFetch': 2500,
+    'Bash': 100, 'Read': 500, 'Edit': 800, 'MultiEdit': 1000, 'Write': 1000, 'Glob': 200, 'Grep': 300,
+    'LSP': 800,
+    'Agent': 3000, 'Task': 3000, 'WebSearch': 2000, 'WebFetch': 2500,
   };
   
   let totalCost = 0;
@@ -280,13 +199,13 @@ const ANTI_PATTERNS: AntiPattern[] = [
   {
     id: "no-research",
     name: "Planning Without Research",
-    description: "Creating plans without using SemanticSearch or exploration tools",
+    description: "Creating plans without using Grep/Glob or Explore subagents",
     detectionRule: (metrics: PlanMetrics[]) => {
       if (metrics.length < 3) return false;
       const recent = metrics.slice(-3);
-      return recent.every(m => !m.tool_usage['SemanticSearch'] && m.parallel_subagents === 0);
+      return recent.every(m => !m.tool_usage['Grep'] && !m.tool_usage['Glob'] && m.parallel_subagents === 0);
     },
-    suggestion: "Always use SemanticSearch and parallel subagents before planning complex features",
+    suggestion: "Always research with Grep/Glob and parallel Explore subagents before planning complex features",
     severity: "critical"
   },
   {
@@ -319,13 +238,13 @@ const ANTI_PATTERNS: AntiPattern[] = [
   {
     id: "no-validation",
     name: "Skipping Validation",
-    description: "Not running ReadLints or tests after code changes",
+    description: "Not running lint/typecheck or tests after code changes",
     detectionRule: (metrics: PlanMetrics[]) => {
       if (metrics.length < 3) return false;
       const recent = metrics.slice(-3);
-      return recent.every(m => !m.tool_usage['ReadLints'] && !m.tool_usage['Shell']);
+      return recent.every(m => !m.tool_usage['Bash']);
     },
-    suggestion: "Always run ReadLints after edits and tests after substantive changes",
+    suggestion: "Always run lint/typecheck (Bash) after edits and tests after substantive changes",
     severity: "high"
   },
   {
@@ -403,14 +322,14 @@ function generateImprovementSuggestions(antiPatterns: AntiPattern[], mistakes: s
   
   // Add suggestions for repeated mistakes
   if (mistakes.includes("Consistently low plan accuracy (<70%)")) {
-    suggestions.push("Improve pre-plan research phase - spend 2-3 min on SemanticSearch");
+    suggestions.push("Improve pre-plan research phase - spend 2-3 min on Grep/Glob and Explore subagents");
     suggestions.push("Add validation subagent before presenting plans");
   }
   
   if (mistakes.includes("Frequently requiring many iterations (>3)")) {
     suggestions.push("Add more thorough feasibility validation");
     suggestions.push("Create checkpoints before risky changes");
-    suggestions.push("Use /grind loop strategically (max 5 iterations)");
+    suggestions.push("Use the fix-and-retest loop strategically (max 5 iterations)");
   }
   
   if (mistakes.includes("Recurring tool failures")) {
@@ -469,11 +388,13 @@ if (existsSync(METRICS_FILE)) {
   }
 }
 
-// Load conversation and extract data
-const conversation = loadConversation(input.conversation_id);
-const toolCalls = conversation ? extractToolCalls(conversation) : [];
-const parallelSubagents = conversation ? countParallelSubagents(conversation) : 0;
-const planType = conversation ? detectPlanType(conversation) : 'unknown';
+// Load the current turn from the transcript; skip turns without tool use (plain Q&A)
+const turn = loadCurrentTurn(input.transcript_path);
+if (!turn || turn.toolUses.length === 0) done();
+
+const toolCalls = extractToolCalls(turn);
+const parallelSubagents = countParallelSubagents(turn);
+const planType = detectPlanType(turn);
 
 // Track MCP usage and effectiveness
 const mcpUsage: Record<string, number> = {};
@@ -557,12 +478,15 @@ if (planTrackingConfig.enablePatternAnalysis && allMetrics.length >= 3) {
 }
 
 // Create metric entry (used whether tracking is enabled or not)
+const iterations = failedTools.length;
+const currentAccuracy = calculatePlanAccuracy(iterations);
+
 const newMetric: PlanMetrics = {
-  plan_accuracy: calculatePlanAccuracy(input, conversation),
+  plan_accuracy: currentAccuracy,
   time_variance: 0,
   tool_usage: toolUsage,
-  iteration_count: input.loop_count,
-  blocker_count: input.status === "error" ? 1 : 0,
+  iteration_count: iterations,
+  blocker_count: 0,
   timestamp: new Date().toISOString(),
   plan_type: planType,
   mcp_usage: mcpUsage,
@@ -573,13 +497,20 @@ const newMetric: PlanMetrics = {
   conversation_duration_ms: undefined,
   cost_estimate: estimatedCost,
   anti_patterns_detected: detectedAntiPatterns,
-  repeated_mistakes: repeatedMistakes
+  repeated_mistakes: repeatedMistakes,
+  session_id: input.session_id,
+  turn_id: turn.id
 };
 
 // Save metric entry if tracking is enabled
 if (planTrackingConfig.trackMetrics) {
-  // Add to metrics
-  allMetrics.push(newMetric);
+  // Add to metrics; a Stop after a stop-hook continuation updates the same turn's entry
+  const last = allMetrics[allMetrics.length - 1];
+  if (last && last.session_id === input.session_id && last.turn_id === turn.id) {
+    allMetrics[allMetrics.length - 1] = newMetric;
+  } else {
+    allMetrics.push(newMetric);
+  }
 
   // Save updated metrics
   try {
@@ -594,17 +525,15 @@ if (planTrackingConfig.trackMetrics) {
 
 // Calculate rolling averages (only if tracking is enabled)
 let avgAccuracy = 75;
-let avgIterations = 2;
 let avgToolEfficiency = 75;
-let avgParallelSubagents = 0;
 let avgCost = 0;
 
 if (planTrackingConfig.trackMetrics && allMetrics.length > 0) {
   const recentMetrics = allMetrics.slice(-10);
   avgAccuracy = recentMetrics.reduce((sum, m) => sum + m.plan_accuracy, 0) / recentMetrics.length;
-  avgIterations = recentMetrics.reduce((sum, m) => sum + m.iteration_count, 0) / recentMetrics.length;
+  const avgIterations = recentMetrics.reduce((sum, m) => sum + m.iteration_count, 0) / recentMetrics.length;
   avgToolEfficiency = recentMetrics.reduce((sum, m) => sum + (m.tool_efficiency || 75), 0) / recentMetrics.length;
-  avgParallelSubagents = recentMetrics.reduce((sum, m) => sum + (m.parallel_subagents || 0), 0) / recentMetrics.length;
+  const avgParallelSubagents = recentMetrics.reduce((sum, m) => sum + (m.parallel_subagents || 0), 0) / recentMetrics.length;
   
   if (planTrackingConfig.enableCostTracking) {
     avgCost = recentMetrics.reduce((sum, m) => sum + (m.cost_estimate || 0), 0) / recentMetrics.length;
@@ -621,7 +550,6 @@ if (planTrackingConfig.trackMetrics && allMetrics.length > 0) {
 }
 
 // Analyze MCP effectiveness
-const currentAccuracy = calculatePlanAccuracy(input, conversation);
 
 if (Object.keys(mcpUsage).length > 0) {
   console.error(`[Plan Tracker] MCP tools used in this session: ${mcpToolsUsed.join(', ')}`);
@@ -641,79 +569,30 @@ if (parallelSubagents > 0) {
   }
 }
 
-// Provide feedback based on metrics (if enabled)
+// Provide feedback based on metrics (if enabled) — advisory, shown to the user
 if (planTrackingConfig.provideFeedback) {
-  if (input.status === "completed") {
-    if (input.loop_count === 0) {
-      console.error("[Plan Tracker] ✓ Perfect execution (no iterations needed)");
-    } else if (input.loop_count <= 2) {
-      console.error("[Plan Tracker] ✓ Good execution (minimal iterations)");
-    } else if (input.loop_count > planTrackingConfig.maxIterations) {
-      console.error("[Plan Tracker] ⚠ High iteration count - plan accuracy may need improvement");
-    }
-    
-    // Suggest improvements if accuracy is low
-    if (avgAccuracy < planTrackingConfig.accuracyThreshold) {
-      const output: StopHookOutput = {
-        followup_message: `Plan accuracy has been below ${planTrackingConfig.accuracyThreshold}% recently. Consider:\n1. More thorough pre-plan research\n2. Better validation before execution\n3. More specific tool selection`,
-      };
-      console.log(JSON.stringify(output));
-      process.exit(0);
-    }
-    
-    // Suggest tool efficiency improvements
-    if (avgToolEfficiency < planTrackingConfig.efficiencyThreshold) {
-      const output: StopHookOutput = {
-        followup_message: "Tool efficiency has been low. Consider:\n1. Using simpler tools when possible (Tier 1: Shell, Read, Write)\n2. Avoiding expensive MCP calls for simple tasks\n3. Using 'fast' model for subagents",
-      };
-      console.log(JSON.stringify(output));
-      process.exit(0);
-    }
+  if (iterations === 0) {
+    console.error("[Plan Tracker] ✓ Perfect execution (no iterations needed)");
+  } else if (iterations <= 2) {
+    console.error("[Plan Tracker] ✓ Good execution (minimal iterations)");
+  } else if (iterations > planTrackingConfig.maxIterations) {
+    console.error("[Plan Tracker] ⚠ High iteration count - plan accuracy may need improvement");
   }
-
-  if (input.status === "error") {
-    console.error("[Plan Tracker] ✗ Execution failed - analyzing patterns");
-    
-    // Check for recurring failures
-    if (planTrackingConfig.trackMetrics) {
-      const recentFailures = allMetrics.slice(-10).filter(m => m.blocker_count > 0).length;
-      if (recentFailures > 2) {
-        const output: StopHookOutput = {
-          followup_message: "Multiple execution failures detected. Common causes:\n1. Insufficient research phase\n2. Missing validation steps\n3. Unrealistic time estimates\n\nWould you like to review the plan approach?",
-        };
-        console.log(JSON.stringify(output));
-        process.exit(0);
-      }
-    }
-    
-    // Check for tool-related failures
-    if (failedTools.length > 0) {
-      console.error(`[Plan Tracker] Failed tools: ${failedTools.join(', ')}`);
-      const output: StopHookOutput = {
-        followup_message: `Execution failed. Failed tools: ${failedTools.join(', ')}. Consider:\n1. Verifying tool prerequisites\n2. Using alternative tools\n3. Checking tool configuration`,
-      };
-      console.log(JSON.stringify(output));
-      process.exit(0);
-    }
+  
+  // Suggest improvements if accuracy is low
+  if (avgAccuracy < planTrackingConfig.accuracyThreshold) {
+    notify(`Plan accuracy has been below ${planTrackingConfig.accuracyThreshold}% recently. Consider:\n1. More thorough pre-plan research\n2. Better validation before execution\n3. More specific tool selection`);
+    process.exit(0);
   }
-
-  // Handle aborted execution (from plan-mode-monitor merge)
-  if (input.status === "aborted") {
-    console.error("[Plan Tracker] ⚠ Plan execution aborted by user");
-    
-    // Gather feedback
-    if (input.loop_count < 2) {
-      const output: StopHookOutput = {
-        followup_message: "Plan execution aborted. What was the main issue?\n1. Plan was inaccurate\n2. Requirements changed\n3. Found better approach\n4. Other",
-      };
-      console.log(JSON.stringify(output));
-      process.exit(0);
-    }
+  
+  // Suggest tool efficiency improvements
+  if (avgToolEfficiency < planTrackingConfig.efficiencyThreshold) {
+    notify("Tool efficiency has been low. Consider:\n1. Using simpler tools when possible (Tier 1: Bash, Read, Edit, Grep)\n2. Avoiding expensive MCP calls for simple tasks\n3. Using `model: haiku` for Explore subagents");
+    process.exit(0);
   }
 } else {
   console.error("[Plan Tracker] ⚠ Feedback disabled in config");
 }
 
 // Default: stop without followup
-console.log(JSON.stringify({}));
-process.exit(0);
+done();

@@ -1,6 +1,6 @@
 # Quick Reference
 
-**For**: Cursor Agent Optimization  
+**For**: Claude Code Agent Optimization  
 **Updated**: March 30, 2026
 
 ---
@@ -29,27 +29,27 @@
 ### Metrics & Dashboards
 | File | Purpose |
 |------|---------|
-| `.cursor/plan-metrics.json` | Recent plan metrics (accuracy, cost, efficiency) |
-| `.cursor/weekly-learning-report.md` | Weekly insights & patterns |
-| `.cursor/cost-dashboard.md` | Cost tracking & ROI |
-| `.cursor/security-dashboard.md` | Security trends & vulnerabilities |
+| `.claude/plan-metrics.json` | Recent plan metrics (accuracy, cost, efficiency) |
+| `.claude/weekly-learning-report.md` | Weekly insights & patterns |
+| `.claude/cost-dashboard.md` | Cost tracking & ROI |
+| `.claude/security-dashboard.md` | Security trends & vulnerabilities |
 
 ### Configuration
 | File | Purpose |
 |------|---------|
-| `.cursor/hooks.config.json` | Hook configuration & thresholds |
-| `.cursor/hooks.json` | Hook triggers & commands |
+| `.claude/hooks.config.json` | Hook configuration & thresholds |
+| `.claude/settings.json` | Hook triggers & commands |
 | `AGENTS.md` | Repository context (root level) |
 
 ### Rules & Skills
 | File | Purpose |
 |------|---------|
-| `.cursor/rules/general.md` | Essential rules (always loaded) |
-| `.cursor/rules/mcp-auto-use.md` | MCP server triggers |
-| `.cursor/rules/parallel-exploration-auto.md` | Subagent triggers |
-| `.cursor/skills/tool-selection/SKILL.md` | Tool decision trees |
-| `.cursor/skills/parallel-exploration/SKILL.md` | Subagent patterns |
-| `.cursor/skills/learning-loop/SKILL.md` | Learning loop workflow |
+| `.claude/rules/general.md` | Essential rules (always loaded) |
+| `.claude/rules/mcp-auto-use.md` | MCP server triggers |
+| `.claude/rules/parallel-exploration-auto.md` | Subagent triggers |
+| `.claude/skills/tool-selection/SKILL.md` | Tool decision trees |
+| `.claude/skills/parallel-exploration/SKILL.md` | Subagent patterns |
+| `.claude/skills/learning-loop/SKILL.md` | Learning loop workflow |
 
 ---
 
@@ -58,7 +58,7 @@
 ### Performance Targets
 | Metric | Target | Status Check |
 |--------|--------|--------------|
-| Plan Accuracy | >80% | `.cursor/plan-metrics.json` |
+| Plan Accuracy | >80% | `.claude/plan-metrics.json` |
 | Tool Efficiency | >70% | Efficiency score |
 | Avg Iterations | <2.0 | Loop count |
 | Security Coverage | 100% | Scans per change |
@@ -75,10 +75,10 @@
 ### MCP Usage
 | Server | Target Usage | When to Use |
 |--------|--------------|-------------|
-| user-context7 | High (liberal) | Library/framework questions |
-| user-ESLint | Auto (every change) | After EVERY code change |
-| user-github | Moderate | Git/GitHub operations |
-| cursor-ide-browser | Low (sparingly) | Visual verification only |
+| context7 | High (liberal) | Library/framework questions |
+| eslint | Auto (every change) | After EVERY code change |
+| github | Moderate | Git/GitHub operations |
+| claude-in-chrome | Low (sparingly) | Visual verification only |
 
 ---
 
@@ -86,7 +86,7 @@
 
 ### Critical (Fix Immediately)
 1. **Planning Without Research**
-   - Detection: No SemanticSearch in last 3 plans
+   - Detection: No Explore (quick) in last 3 plans
    - Fix: Always research 2-3 min before planning
 
 2. **Repeated Execution Failures**
@@ -99,7 +99,7 @@
    - Fix: Follow tool escalation (Tier 1 → Tier 4)
 
 4. **Skipping Validation**
-   - Detection: No ReadLints/tests in 3 plans
+   - Detection: No Lint check/tests in 3 plans
    - Fix: Enable auto-validate hook
 
 ### Medium Priority (Fix Next Week)
@@ -121,16 +121,16 @@
 - **Read**: Single file access (500 tokens)
 - **Glob**: Pattern matching (200 tokens)
 - **Grep**: Exact text search (300 tokens)
-- **Shell**: Command execution (100 tokens)
+- **Bash**: Command execution (100 tokens)
 
 ### Tier 2 (If Tier 1 Insufficient) - Moderate
-- **SemanticSearch**: Conceptual search (1,500 tokens)
-- **StrReplace**: Small edits <50 lines (500 tokens)
+- **Explore (quick)**: Conceptual search (1,500 tokens)
+- **Edit**: Small edits <50 lines (500 tokens)
 - **Write**: New files (1,000 tokens)
 
 ### Tier 3 (If Tier 2 Inadequate) - Higher
-- **Task**: Complex exploration (3,000 tokens)
-- **ReadLints**: Quality checks (800 tokens)
+- **Agent**: Complex exploration (3,000 tokens)
+- **Lint check**: Quality checks (800 tokens)
 - **WebSearch/WebFetch**: External info (2,000+ tokens)
 
 ### Tier 4 (Last Resort) - Most Expensive
@@ -148,18 +148,18 @@ Before committing ANY code:
 - [ ] **Lint clean** (auto-fixed by hook)
 - [ ] **Tests passing** (auto-run)
 - [ ] **Type check passed** (TypeScript)
-- [ ] **Cost within budget** (check `.cursor/cost-dashboard.md`)
-- [ ] **No anti-patterns detected** (check `.cursor/weekly-learning-report.md`)
+- [ ] **Cost within budget** (check `.claude/cost-dashboard.md`)
+- [ ] **No anti-patterns detected** (check `.claude/weekly-learning-report.md`)
 
 ---
 
 ## Best Practices
 
 ### Research Phase (2-3 min)
-1. SemanticSearch for existing patterns
+1. Explore (quick) for existing patterns
 2. Launch parallel subagents if complex
-3. ReadLints for code health
-4. Batch questions with AskQuestion
+3. Lint check for code health
+4. Batch questions with AskUserQuestion
 
 ### Planning Phase (1-2 min)
 1. Follow enhanced plan structure
@@ -185,7 +185,7 @@ Before committing ANY code:
 
 ### Plan Accuracy <70%
 **Cause**: Insufficient research  
-**Fix**: Spend 2-3 min on SemanticSearch, launch subagents
+**Fix**: Spend 2-3 min on Explore (quick), launch subagents
 
 ### Tool Efficiency <60%
 **Cause**: Using expensive tools unnecessarily  
@@ -204,9 +204,9 @@ Before committing ANY code:
 ## Related Documentation
 
 - `AGENT-INSTRUCTION-BEST-PRACTICES.md` - Core research
-- `.cursor/docs/COST-OPTIMIZATION.md` - Cost tracking guide
-- `.cursor/docs/PLAN-MODE-OPTIMIZATION.md` - Plan mode workflow
-- `.cursor/OPTIMIZATION-COMPLETE.md` - Implementation summary
+- `.claude/docs/COST-OPTIMIZATION.md` - Cost tracking guide
+- `.claude/docs/PLAN-MODE-OPTIMIZATION.md` - Plan mode workflow
+- `.claude/settings.json` - Hook wiring (PostToolUse / Stop / SessionStart)
 
 ---
 

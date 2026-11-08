@@ -1,3 +1,8 @@
+---
+name: parallel-exploration
+description: Launch 2-4 parallel read-only Explore subagents for broad codebase discovery. Use for complex features, large refactors, or bugs with unknown root cause.
+---
+
 # SKILL.md: Parallel Exploration
 
 ## Description
@@ -25,7 +30,7 @@ Automatically launch multiple subagents in parallel for broad codebase explorati
 ```
 User: "Add user dashboard"
 
-Parallel Subagents (model="fast", run_in_background=true):
+Parallel Subagents (model="haiku", run_in_background=true):
 1. "Find dashboard-like pages and layouts"
 2. "Find API route patterns for data fetching"
 3. "Find component structures for widgets"
@@ -69,12 +74,11 @@ Output: Complete migration map + risk assessment
 
 ```typescript
 // Optimal configuration for parallel exploration
-Task:
+Agent:
   description="Explore [specific area]"
   prompt="Find [specific pattern/code] in [target directory]"
-  subagent_type="explore"
-  model="fast"  // Cost optimization
-  readonly=true  // Safety
+  subagent_type="Explore"
+  model="haiku"  // Cost optimization
   run_in_background=true  // Non-blocking
 ```
 
@@ -82,25 +86,25 @@ Task:
 
 **Subagent Cost Hierarchy**:
 ```
-explore (fast model): $ (Use for discovery)
-generalPurpose (fast): $$ (Use for analysis)
-generalPurpose (capable): $$$ (Use for complex reasoning)
-browser-use: $$$$ (Use only when browser needed)
+Explore (haiku): $ (Use for discovery)
+general-purpose (haiku): $$ (Use for analysis)
+general-purpose (sonnet/opus): $$$ (Use for complex reasoning)
+claude-in-chrome: $$$$ (Use only when browser needed)
 ```
 
 **Mandatory Cost Rules**:
-1. **ALWAYS** use `model="fast"` for exploration subagents (90% of cases)
+1. **ALWAYS** use `model="haiku"` for exploration subagents (90% of cases)
 2. **ONLY** use capable model for:
    - Complex reasoning tasks
    - Multi-step analysis
    - Security-critical reviews
-3. **DOCUMENT** model choice in plan (justify if not "fast")
-4. Use `readonly=true` unless modification needed
+3. **DOCUMENT** model choice in plan (justify if not "haiku")
+4. Use the read-only `Explore` agent unless modification needed
 5. Use `run_in_background=true` for non-blocking
 6. Limit to 4 parallel subagents max (diminishing returns)
 7. Time-box to 120s max per subagent
 
-**Cost Impact**: Using `model="fast"` reduces exploration costs by 50-70%
+**Cost Impact**: Using `model="haiku"` reduces exploration costs by 50-70%
 
 ## Consolidation Strategy
 
@@ -186,7 +190,7 @@ Result: Complete migration strategy in 120s
 - Forget to consolidate findings (confusion)
 
 ✅ **Do**:
-- Use `model="fast"` for exploration
+- Use `model="haiku"` for exploration
 - Launch 2-4 subagents in parallel
 - Time-box to 120s max
 - Consolidate findings before planning

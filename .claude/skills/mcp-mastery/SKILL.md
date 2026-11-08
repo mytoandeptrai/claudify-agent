@@ -1,7 +1,12 @@
+---
+name: mcp-mastery
+description: Pick the right MCP server (claude-in-chrome, github, eslint, context7, chrome-devtools, playwright) for a task. Use for browser verification, GitHub ops, lint, library docs, performance audits or E2E tests.
+---
+
 # SKILL.md: MCP Server Mastery
 
 ## Description
-Automatic selection and optimal use of available MCP servers for maximum efficiency. Activates automatically based on task analysis in debug mode.
+Automatic selection and optimal use of available MCP servers for maximum efficiency. Activates automatically based on task analysis.
 
 ## When to Use (Automatic Triggers)
 **This skill activates AUTOMATICALLY when**:
@@ -20,11 +25,10 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 ## Available MCP Servers
 
-### 1. cursor-ide-browser
+### 1. claude-in-chrome
 **Capabilities**:
-- Browser automation (navigate, click, fill, scroll)
-- Visual verification (screenshots, snapshots)
-- Performance profiling (CPU, timing)
+- Browser automation in your real Chrome (navigate, click, fill, scroll) — enable with `/chrome`
+- Visual verification (screenshots, page reads)
 - Console/network inspection
 
 **Automatic Triggers**:
@@ -34,16 +38,16 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 **Optimal Usage Pattern**:
 ```
-1. browser_snapshot (take_screenshot: true)
-2. Identify refs from snapshot
-3. Interact via refs (browser_click, browser_fill)
-4. browser_take_screenshot (verify)
-5. Use performance profiling if optimization mentioned
+1. navigate → read_page (accessibility tree)
+2. Identify element refs from the page read
+3. Interact via refs (computer click, form_input)
+4. computer screenshot (verify)
+5. Use chrome-devtools for profiling if optimization mentioned
 ```
 
 **Cost**: High → Use sparingly, only when visual verification needed
 
-### 2. user-github
+### 2. github
 **Capabilities**:
 - Issue/PR management
 - Repository operations
@@ -65,7 +69,7 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 **Cost**: Moderate → Use for all git operations
 
-### 3. user-ESLint
+### 3. eslint
 **Capabilities**:
 - Automatic linting
 - Auto-fix issues
@@ -85,7 +89,7 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 **Cost**: Low → Run automatically after all edits
 
-### 4. user-context7
+### 4. context7
 **Capabilities**:
 - Fetch current library docs
 - API syntax verification
@@ -107,7 +111,7 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 **Cost**: Low → Fetch proactively for library work
 
-### 5. user-chrome-devtools
+### 5. chrome-devtools
 **Capabilities**:
 - Lighthouse audits
 - Performance metrics
@@ -119,7 +123,7 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 **Cost**: Moderate → Use for performance audits
 
-### 6. user-playwright / user-selenium
+### 6. playwright / selenium
 **Capabilities**:
 - Cross-browser testing
 - E2E automation
@@ -136,47 +140,47 @@ Automatic selection and optimal use of available MCP servers for maximum efficie
 
 ```
 Task involves browser/UI?
-├─ Yes → cursor-ide-browser
-│  └─ Performance audit? → user-chrome-devtools
-│  └─ E2E tests? → user-playwright
+├─ Yes → claude-in-chrome
+│  └─ Performance audit? → chrome-devtools
+│  └─ E2E tests? → playwright
 └─ No
-   ├─ GitHub operations? → user-github
-   ├─ Code quality? → user-ESLint (automatic)
-   ├─ Library docs? → user-context7
+   ├─ GitHub operations? → github
+   ├─ Code quality? → eslint (automatic)
+   ├─ Library docs? → context7
    └─ None → Standard tools only
 ```
 
 ## Cost Optimization Rules (Automatically Enforced)
 
-1. **Always run user-ESLint** after code changes (low cost, high value)
-2. **Fetch user-context7** before library implementation (prevents errors)
-3. **Use cursor-ide-browser** only when visual verification essential
-4. **Prefer user-github** over manual git commands (automation)
+1. **Always run eslint** after code changes (low cost, high value)
+2. **Fetch context7** before library implementation (prevents errors)
+3. **Use claude-in-chrome** only when visual verification essential
+4. **Prefer github** over manual git commands (automation)
 5. **Run performance audits** only when performance mentioned
 6. **Start with Tier 1 MCPs** (cheap) before Tier 2-3 (expensive)
 7. **Chain MCPs automatically** for complex workflows (see examples)
-8. **Track MCP usage** in .cursor/mcp-usage-log.md for optimization
+8. **Track MCP usage** in .claude/mcp-usage-log.md for optimization
 
-## Debug Mode Auto-Triggers
+## Auto-Triggers
 
-**In debug mode, these triggers are AUTOMATICALLY monitored**:
+**These triggers are monitored automatically**:
 
 ```
 File Change Detection:
-- components/**, app/**, pages/** → cursor-ide-browser
-- __tests__/**, e2e/** → user-playwright
-- *.ts, *.tsx → user-ESLint (after changes)
+- components/**, app/**, pages/** → claude-in-chrome
+- __tests__/**, e2e/** → playwright
+- *.ts, *.tsx → eslint (after changes)
 
 Keyword Detection:
-- "PR", "issue", "branch" → user-github
-- "lint", "quality" → user-ESLint
-- "how to", "docs", "API" → user-context7
-- "performance", "optimize" → user-chrome-devtools + cursor-ide-browser
+- "PR", "issue", "branch" → github
+- "lint", "quality" → eslint
+- "how to", "docs", "API" → context7
+- "performance", "optimize" → chrome-devtools + claude-in-chrome
 
 Error Detection:
-- ESLint errors → user-ESLint (auto-fix mode)
-- Test failures → user-playwright (debug mode)
-- Build errors → user-context7 (fetch build docs)
+- ESLint errors → eslint (auto-fix mode)
+- Test failures → playwright (headed run / trace viewer)
+- Build errors → context7 (fetch build docs)
 ```
 
 ## Examples
@@ -186,29 +190,29 @@ Error Detection:
 User: "Add dark mode toggle to settings"
 
 MCP Sequence:
-1. **user-context7**: Fetch Tailwind dark mode docs
-2. **cursor-ide-browser**: 
+1. **context7**: Fetch Tailwind dark mode docs
+2. **claude-in-chrome**: 
    - Navigate to settings page
    - Verify toggle renders correctly
    - Screenshot for confirmation
-3. **user-ESLint**: Check code quality (automatic)
+3. **eslint**: Check code quality (automatic)
 
 ### Example 2: Bug Fix Workflow
 
 User: "Fix checkout issue #456"
 
 MCP Sequence:
-1. **user-github**: Fetch issue #456 details
-2. **user-context7**: Check payment library docs
-3. **user-ESLint**: Verify fix quality (automatic)
-4. **user-github**: Create PR linking issue
+1. **github**: Fetch issue #456 details
+2. **context7**: Check payment library docs
+3. **eslint**: Verify fix quality (automatic)
+4. **github**: Create PR linking issue
 
 ### Example 3: Performance Optimization
 
 User: "Optimize dashboard loading"
 
 MCP Sequence:
-1. **user-chrome-devtools**: Run Lighthouse audit
-2. **cursor-ide-browser**: Profile CPU usage
-3. **user-context7**: Fetch React optimization docs
-4. **user-chrome-devtools**: Re-run audit to verify improvement
+1. **chrome-devtools**: Run Lighthouse audit
+2. **chrome-devtools**: Profile CPU usage
+3. **context7**: Fetch React optimization docs
+4. **chrome-devtools**: Re-run audit to verify improvement

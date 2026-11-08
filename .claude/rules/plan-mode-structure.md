@@ -52,25 +52,25 @@ Every plan MUST include:
 ## Files to Create/Modify
 - `path/to/file.ts` - Purpose
   - Pattern: Follow @[reference file]
-  - Tools: Use StrReplace for edits, Shell for testing
+  - Tools: Use Edit for edits, Bash for testing
 
 ## Implementation Steps
 1. [Step] 
-   - Tool: SemanticSearch to find [X]
-   - Tool: Task subagent to explore [Y]
-   - Tool: ReadLints to verify [Z]
+   - Tool: Explore (quick) to find [X]
+   - Tool: Agent subagent to explore [Y]
+   - Tool: Lint check to verify [Z]
    - Success: [Verifiable metric]
 
 ## Tool Strategy
-- Exploration: SemanticSearch + Task (explore)
-- Implementation: Read/Write/StrReplace
-- Validation: ReadLints + Shell (tests)
-- Questions: AskQuestion for [specific decisions]
+- Exploration: Explore (quick) + Agent (Explore)
+- Implementation: Read/Write/Edit
+- Validation: Lint check + Bash (tests)
+- Questions: AskUserQuestion for [specific decisions]
 
 ## Risk Mitigation
 - If [X] fails → Fallback: [Y]
-- If tests fail → Use /grind loop (max 5 iterations)
-- If stuck → AskQuestion with options
+- If tests fail → Use the fix-and-retest loop (max 5 iterations)
+- If stuck → AskUserQuestion with options
 ```
 
 ## Examples
@@ -86,25 +86,25 @@ Add login button to header navigation following existing button patterns.
 ## Files to Modify
 - `components/Header.tsx` - Add login button to nav
   - Pattern: Follow @components/Button.tsx
-  - Tools: StrReplace for edit, ReadLints for validation
+  - Tools: Edit for edit, Lint check for validation
 
 ## Implementation Steps
 1. Find existing button patterns
-   - Tool: SemanticSearch: "How are buttons styled?"
+   - Tool: Explore (quick): "How are buttons styled?"
    - Success: Pattern identified
 
 2. Add login button to Header
-   - Tool: StrReplace
+   - Tool: Edit
    - Success: Button renders correctly
 
 3. Verify no linting errors
-   - Tool: ReadLints
+   - Tool: Lint check
    - Success: Zero new lints
 
 ## Tool Strategy
-- Exploration: SemanticSearch for button patterns
-- Implementation: StrReplace
-- Validation: ReadLints
+- Exploration: Explore (quick) for button patterns
+- Implementation: Edit
+- Validation: Lint check
 
 ## Estimated Time: 10 minutes
 ```
@@ -130,8 +130,8 @@ Create user dashboard with stats, activity feed, and settings panel.
 
 ## Implementation Steps
 1. Research existing patterns (3 min)
-   - Tool: Task (explore): "Find page patterns"
-   - Tool: Task (explore): "Find component patterns"
+   - Tool: Agent (Explore): "Find page patterns"
+   - Tool: Agent (Explore): "Find component patterns"
    - Success: Patterns identified
 
 2. Create API endpoint (5 min)
@@ -147,19 +147,19 @@ Create user dashboard with stats, activity feed, and settings panel.
    - Success: Components render
 
 5. Integration testing (5 min)
-   - Tool: Shell: npm run test
-   - Tool: ReadLints
+   - Tool: Bash: npm run test
+   - Tool: Lint check
    - Success: All tests pass, zero lints
 
 ## Tool Strategy
-- Exploration: Task (explore) x2 in parallel
-- Implementation: Write, StrReplace
-- Validation: Shell (tests), ReadLints
-- Questions: AskQuestion for dashboard widget priorities
+- Exploration: Agent (Explore) x2 in parallel
+- Implementation: Write, Edit
+- Validation: Bash (tests), Lint check
+- Questions: AskUserQuestion for dashboard widget priorities
 
 ## Risk Mitigation
 - If API fails → Fallback: Mock data initially
-- If tests fail → Use /grind loop (max 5 iterations)
+- If tests fail → Use the fix-and-retest loop (max 5 iterations)
 - Checkpoint before: Integration step
 
 ## Estimated Time: 45 minutes

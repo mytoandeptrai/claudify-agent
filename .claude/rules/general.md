@@ -20,6 +20,6 @@
 - [ ] Security review passed (auto-run)
 - [ ] Lint clean (auto-fixed)
 - [ ] Tests passing (auto-run)
-- [ ] Cost within budget (check `.cursor/cost-dashboard.md`)
+- [ ] Cost within budget (check `.claude/cost-dashboard.md`)
 
-**Note**: See @.cursor/rules/ for task-specific rules. Anti-patterns: @.cursor/rules/anti-patterns.md
+**Note**: See @.claude/rules/ for task-specific rules. Anti-patterns: @.claude/rules/anti-patterns.md

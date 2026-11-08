@@ -2,39 +2,39 @@
 
 ## Overview
 
-MCP (Model Context Protocol) servers extend Cursor agent capabilities with specialized tools for browser automation, GitHub operations, code quality, and documentation access.
+MCP (Model Context Protocol) servers extend Claude Code agent capabilities with specialized tools for browser automation, GitHub operations, code quality, and documentation access.
 
 ## Available MCP Servers
 
-### 1. cursor-ide-browser
+### 1. claude-in-chrome
 **Purpose**: Browser automation and visual verification
 
+**Setup**: Claude in Chrome extension, enabled with `/chrome` (tools appear as `mcp__claude-in-chrome__*`)
+
 **Tools**:
-- `browser_snapshot`: Inspect page structure (ARIA tree)
-- `browser_take_screenshot`: Capture visual state
-- `browser_click`: Click elements by ref
-- `browser_fill`: Fill forms
-- `browser_scroll`: Navigate pages
-- `browser_profile_start/stop`: CPU profiling
+- `navigate`: Open a URL in the controlled tab
+- `read_page` / `find`: Inspect page structure (accessibility tree) and locate elements
+- `computer`: Click, type, scroll and take screenshots
+- `form_input`: Fill forms
+- `read_console_messages` / `read_network_requests`: Debug runtime errors and API calls
 
 **When to Use**:
 - UI changes need visual verification
-- E2E testing required
-- Performance profiling needed
+- Reproducing UI bugs (console/network inspection)
 - Design mockup matching
 
 **Best Practices**:
-1. Always use `browser_snapshot` before interactions
-2. Use refs from snapshot (not coordinates)
+1. Always use `read_page`/`find` before interactions
+2. Target elements by ref from the page read (not coordinates)
 3. Take fresh screenshot after each action
-4. Use performance profiling only when optimization mentioned
-5. Lock/unlock browser properly (don't call lock before navigate)
+4. Use chrome-devtools for performance profiling (only when optimization mentioned)
+5. Use playwright for repeatable E2E tests instead of manual browsing
 
 **Cost**: High ($$$$) → Use sparingly
 
 ---
 
-### 2. user-github
+### 2. github
 **Purpose**: GitHub operations automation
 
 **Tools**:
@@ -60,7 +60,7 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 
 ---
 
-### 3. user-ESLint
+### 3. eslint
 **Purpose**: Code quality automation
 
 **Tools**:
@@ -75,7 +75,7 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 - When user mentions quality/errors
 
 **Best Practices**:
-1. Run automatically after StrReplace/Write
+1. Run automatically after Edit/Write
 2. Apply auto-fixes immediately
 3. Report remaining issues to user
 4. Fix before committing
@@ -85,7 +85,7 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 
 ---
 
-### 4. user-context7
+### 4. context7
 **Purpose**: Library/framework documentation
 
 **Tools**:
@@ -111,7 +111,7 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 
 ---
 
-### 5. user-chrome-devtools
+### 5. chrome-devtools
 **Purpose**: Performance and accessibility audits
 
 **Tools**:
@@ -137,7 +137,7 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 
 ---
 
-### 6. user-playwright / user-selenium
+### 6. playwright / selenium
 **Purpose**: Cross-browser and E2E testing
 
 **Tools**:
@@ -169,13 +169,13 @@ MCP (Model Context Protocol) servers extend Cursor agent capabilities with speci
 Task Type → MCP Server
 ─────────────────────
 UI/Browser changes?
-├─ Yes → cursor-ide-browser
-│  └─ Performance audit? → user-chrome-devtools
-│  └─ E2E tests? → user-playwright
+├─ Yes → claude-in-chrome
+│  └─ Performance audit? → chrome-devtools
+│  └─ E2E tests? → playwright
 └─ No
-   ├─ GitHub operations? → user-github
-   ├─ Code quality check? → user-ESLint (automatic)
-   ├─ Library docs needed? → user-context7
+   ├─ GitHub operations? → github
+   ├─ Code quality check? → eslint (automatic)
+   ├─ Library docs needed? → context7
    └─ None → Standard tools only
 ```
 
@@ -229,12 +229,12 @@ Track per MCP server:
 User: "Add dark mode toggle to settings"
 
 MCP Sequence:
-1. **user-context7**: Fetch Tailwind dark mode docs
-2. **cursor-ide-browser**: 
+1. **context7**: Fetch Tailwind dark mode docs
+2. **claude-in-chrome**: 
    - Navigate to settings page
    - Verify toggle renders
    - Screenshot confirmation
-3. **user-ESLint**: Check quality (automatic)
+3. **eslint**: Check quality (automatic)
 
 Total MCP cost: $$ (context7) + $$$ (browser) + $ (eslint) = $$$$
 Time saved: 15 minutes manual verification
@@ -246,10 +246,10 @@ Time saved: 15 minutes manual verification
 User: "Fix checkout issue #456"
 
 MCP Sequence:
-1. **user-github**: Fetch issue #456 details
-2. **user-context7**: Check payment library docs
-3. **user-ESLint**: Verify fix quality (automatic)
-4. **user-github**: Create PR linking issue
+1. **github**: Fetch issue #456 details
+2. **context7**: Check payment library docs
+3. **eslint**: Verify fix quality (automatic)
+4. **github**: Create PR linking issue
 
 Total MCP cost: $$ (github) + $ (context7) + $ (eslint) + $$ (github) = $$$$
 Time saved: 20 minutes manual operations
@@ -261,11 +261,11 @@ Time saved: 20 minutes manual operations
 User: "Optimize dashboard loading"
 
 MCP Sequence:
-1. **user-chrome-devtools**: Lighthouse audit (baseline)
-2. **cursor-ide-browser**: CPU profiling
-3. **user-context7**: React optimization docs
+1. **chrome-devtools**: Lighthouse audit (baseline)
+2. **chrome-devtools**: CPU profiling
+3. **context7**: React optimization docs
 4. **Implement optimizations**
-5. **user-chrome-devtools**: Re-run audit (verify)
+5. **chrome-devtools**: Re-run audit (verify)
 
 Total MCP cost: $$ (chrome) + $$$ (browser) + $ (context7) + $$ (chrome) = $$$$
 Time saved: 30 minutes manual testing
@@ -279,7 +279,7 @@ Time saved: 30 minutes manual testing
 **Problem**: Selected MCP server not accessible
 
 **Solutions**:
-1. Check MCP server is running: `Settings → MCP → [Server]`
+1. Check MCP server is connected: run `/mcp` in Claude Code (add with `claude mcp add`)
 2. Verify authentication if required
 3. Use alternative tool if unavailable
 4. Report missing MCP to admin
@@ -292,7 +292,7 @@ Time saved: 30 minutes manual testing
 
 **Solutions**:
 1. Narrow scope (e.g., specific URL for browser)
-2. Use `model="fast"` for subagents
+2. Use `model="haiku"` for subagents
 3. Time-box execution (max 120s)
 4. Try cheaper alternative
 
@@ -313,10 +313,10 @@ Time saved: 30 minutes manual testing
 ## Best Practices Summary
 
 ✅ **DO**:
-- Run user-ESLint after ALL code changes
-- Fetch user-context7 docs BEFORE library implementation
-- Use cursor-ide-browser for visual verification
-- Automate git operations with user-github
+- Run eslint after ALL code changes
+- Fetch context7 docs BEFORE library implementation
+- Use claude-in-chrome for visual verification
+- Automate git operations with github
 - Run performance audits for optimization tasks
 
 ❌ **DON'T**:

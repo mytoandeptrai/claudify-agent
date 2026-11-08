@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide documents the comprehensive optimization of Cursor's Plan Mode to automatically improve tool selection and usage when building implementation plans.
+This guide documents the comprehensive optimization of Claude Code's Plan Mode to automatically improve tool selection and usage when building implementation plans.
 
 **Status**: ✅ **Implemented**  
 **Files Created**: 10 files (4 rules, 2 skills, 3 hooks, 1 config)  
@@ -24,10 +24,10 @@ Plan Mode provides:
 ### Missing Automatic Optimizations
 
 1. **Tool Selection Not Automated**
-   - No automatic SemanticSearch for patterns
+   - No automatic Explore (quick) for patterns
    - No automatic subagent exploration
-   - No proactive ReadLints checks
-   - Manual AskQuestion usage
+   - No proactive Lint check checks
+   - Manual AskUserQuestion usage
 
 2. **No Pre-Plan Research**
    - Plans created without understanding existing patterns
@@ -55,12 +55,12 @@ flowchart TD
     C --> D[Phase 3: Plan Validation]
     D --> E[Phase 4: Execution Monitoring]
     
-    B --> B1[SemanticSearch]
-    B --> B2[Task Subagents]
-    B --> B3[ReadLints]
+    B --> B1["Explore (quick)"]
+    B --> B2[Agent Subagents]
+    B --> B3[Lint check]
     
     C --> C1[CreatePlan Tool]
-    C --> C2[AskQuestion]
+    C --> C2[AskUserQuestion]
     
     D --> D1[Feasibility Check]
     D --> D2[Tool Availability]
@@ -73,17 +73,17 @@ flowchart TD
 
 ## Implementation Files
 
-### Rules (`.cursor/rules/`)
+### Rules (`.claude/rules/`)
 
 #### 1. plan-mode-research.md
 
 **Purpose**: Automatic pre-plan research workflow
 
 **Key Features**:
-- SemanticSearch for existing patterns (30s)
-- Parallel Task subagents for exploration (60s)
-- ReadLints for code health check (15s)
-- AskQuestion for requirement clarification (batched)
+- Explore (quick) for existing patterns (30s)
+- Parallel Agent subagents for exploration (60s)
+- Lint check for code health check (15s)
+- AskUserQuestion for requirement clarification (batched)
 
 **When Loaded**: Always in Plan Mode
 
@@ -92,12 +92,12 @@ flowchart TD
 User: "Add user dashboard"
 
 Agent automatically:
-1. SemanticSearch: "How are pages structured?"
-2. Task (parallel):
+1. Explore (quick): "How are pages structured?"
+2. Agent (parallel):
    - "Find API route patterns"
    - "Find component patterns"
-3. ReadLints: Check current health
-4. AskQuestion: "Which widgets needed?" (if unclear)
+3. Lint check: Check current health
+4. AskUserQuestion: "Which widgets needed?" (if unclear)
 ```
 
 ---
@@ -161,7 +161,7 @@ Agent automatically:
 
 **Validation Subagent**:
 ```
-Task:
+Agent:
   description="Validate implementation plan"
   prompt="Review this plan for feasibility:
   1. Check file accessibility
@@ -171,8 +171,7 @@ Task:
   5. Suggest improvements
   
   Return: Pass/Fail + issues"
-  subagent_type="generalPurpose"
-  readonly=true
+  subagent_type="Plan"  // read-only architect agent
 ```
 
 ---
@@ -184,7 +183,7 @@ Task:
 **Key Features**:
 - Automatic TodoWrite creation
 - Strategic checkpoint creation
-- Iteration loops (/grind)
+- Iteration loops (fix-and-retest)
 - Adaptive re-planning (>30% deviation)
 - Quality gates after each step
 
@@ -196,13 +195,13 @@ Task:
 - Irreversible operations
 
 **Quality Gates**:
-- ReadLints after each edit
+- Lint check after each edit
 - Tests after each phase
 - TodoWrite updated immediately
 
 ---
 
-### Skills (`.cursor/skills/`)
+### Skills (`.claude/skills/`)
 
 #### 1. plan-mode-mastery/SKILL.md
 
@@ -216,10 +215,10 @@ Task:
 **Workflow**:
 ```
 1. Pre-Plan Research (2-3 min)
-   - SemanticSearch
+   - Explore (quick)
    - Parallel subagents
-   - ReadLints
-   - AskQuestion (batch)
+   - Lint check
+   - AskUserQuestion (batch)
 
 2. Plan Creation (1-2 min)
    - Enhanced structure
@@ -251,8 +250,8 @@ Know file path?
 ├─ Yes → Read
 └─ No
    ├─ Exact text? → Grep
-   ├─ Concept? → SemanticSearch
-   └─ Broad exploration? → Task (explore)
+   ├─ Concept? → Explore (quick)
+   └─ Broad exploration? → Agent (Explore)
 ```
 
 **Modifying Code**:
@@ -260,29 +259,29 @@ Know file path?
 New file?
 ├─ Yes → Write
 └─ No
-   ├─ <50 lines? → StrReplace
+   ├─ <50 lines? → Edit
    └─ >50 lines → Write (entire file)
 ```
 
 **Validation**:
 ```
-Linting? → ReadLints
-Tests? → Shell
+Linting? → Lint check
+Tests? → Bash
 Visual? → Browser/Screenshot
-User approval? → AskQuestion
+User approval? → AskUserQuestion
 ```
 
 **Tool Cost Hierarchy**:
 ```
 Tier 1 (Cheapest): Read, Glob, Grep
-Tier 2 (Moderate): SemanticSearch, StrReplace, Write
-Tier 3 (Higher): Task, Shell, ReadLints
+Tier 2 (Moderate): Explore (quick), Edit, Write
+Tier 3 (Higher): Agent, Bash, Lint check
 Tier 4 (Most expensive): Parallel subagents, Browser MCP
 ```
 
 ---
 
-### Hooks (`.cursor/hooks/`)
+### Hooks (`.claude/hooks/`)
 
 #### 1. plan-quality-tracker.ts (Consolidated)
 
@@ -291,8 +290,8 @@ Tier 4 (Most expensive): Parallel subagents, Browser MCP
 **Note**: Consolidated from `plan-mode-monitor.ts` and `plan-quality-tracker.ts` in March 2026 optimization.
 
 **Features**:
-- Track completion status and loop iterations
-- Real tool usage extraction from conversations
+- Track iterations (failed tool calls retried in the turn)
+- Real tool usage extraction from the Claude Code transcript (`transcript_path`)
 - Actual plan accuracy calculations
 - Tool efficiency scoring (Tier 1-4)
 - MCP server usage tracking
@@ -300,75 +299,76 @@ Tier 4 (Most expensive): Parallel subagents, Browser MCP
 - Provide feedback on failures and patterns
 - Suggest improvements based on metrics
 
-**Triggers**: `plan_mode_exit` event
+**Triggers**: `Stop` event
 
 **Metrics Tracked**:
-- `plan_accuracy`: % of plan followed (calculated from loop count + tool failures)
+- `plan_accuracy`: % of plan followed (calculated from iterations)
 - `time_variance`: actual vs estimated time
 - `tool_usage`: frequency per tool
-- `iteration_count`: /grind loops used
+- `iteration_count`: fix-and-retest loops used
 - `blocker_count`: times BLOCKED
 - `tool_efficiency`: ratio of cheap vs expensive tools
 - `mcp_usage`: MCP server frequency
 - `parallel_subagents`: count of parallel subagents used
 
-**Storage**: `.cursor/plan-metrics.json`
+**Storage**: `.claude/plan-metrics.json`
 
 **Rolling Averages**: Last 10 plans
 
 **Example Output**:
 ```
-[Plan Tracker] Status: completed, Loop: 2
+[Plan Tracker] Processing execution data for session <session_id>...
 [Plan Tracker] ✓ Metrics saved
 [Plan Tracker] Rolling averages (last 10 plans):
   - Accuracy: 82.5%
   - Avg iterations: 1.8
   - Tool efficiency: 75.0
   - Avg parallel subagents: 2.3
-[Plan Tracker] MCP tools used in this session: browser_navigate, github_search
+[Plan Tracker] MCP tools used in this session: mcp__claude-in-chrome__navigate, mcp__github__search_issues
 [Plan Tracker] ✓ High accuracy with MCP tools - good tool selection
 ```
 
 ---
 
-#### 2. hooks.json (Updated)
+#### 2. settings.json (Claude Code hooks)
 
-**Purpose**: Configure all hooks
+**Purpose**: Wire all hooks into Claude Code (`.claude/settings.json`)
 
-**Configuration** (After Consolidation):
+**Configuration**:
 ```json
 {
-  "version": 1,
   "hooks": {
-    "after_code_change": [
+    "PostToolUse": [
       {
-        "command": "npx tsx .cursor/hooks/auto-lint-fix.ts",
-        "runtime": "node",
-        "description": "Auto-fix ESLint issues after code changes"
-      },
-      {
-        "command": "npx tsx .cursor/hooks/auto-validate.ts",
-        "runtime": "node",
-        "description": "Run validation sequence (lint, typecheck, tests, MCP validation)"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [{ "type": "command", "command": "npx -y tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-lint-fix.ts\"", "timeout": 90 }]
       }
     ],
-    "plan_mode_exit": [
+    "Stop": [
       {
-        "command": "npx tsx .cursor/hooks/plan-quality-tracker.ts",
-        "runtime": "node",
-        "description": "Track plan execution metrics and provide feedback"
+        "hooks": [
+          { "type": "command", "command": "npx -y tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-validate.ts\"", "timeout": 300 },
+          { "type": "command", "command": "npx -y tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-security-review.ts\"", "timeout": 60 },
+          { "type": "command", "command": "npx -y tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/plan-quality-tracker.ts\"", "timeout": 60 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [{ "type": "command", "command": "npx -y tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-learning-review.ts\"", "timeout": 60 }]
       }
     ]
   }
 }
 ```
 
-**Changes**:
-- Consolidated from 6 hooks to 3 hooks
-- Changed from `stop` trigger to event-specific triggers
-- Added `after_code_change` for validation hooks
-- Added `plan_mode_exit` for plan tracking
-- Removed redundant hooks (test-runner, mcp-tool-validator, plan-mode-monitor)
+**How it works**:
+- Hooks read the Claude Code hook payload from stdin (`session_id`, `transcript_path`, `stop_hook_active`, `tool_input`)
+- Stop hooks only look at the current turn (everything after your last prompt) in the transcript JSONL
+- Validation/security failures return `{"decision": "block", "reason": ...}` so Claude keeps working and fixes them; never twice in a row (`stop_hook_active`)
+- Advisory feedback returns `{"systemMessage": ...}` (shown to you, does not block)
+- Optional thresholds live in `.claude/hooks.config.json`
 
 ---
 
@@ -382,8 +382,8 @@ Tier 4 (Most expensive): Parallel subagents, Browser MCP
 
 ```
 Phase 1: Research (1 min)
-- SemanticSearch: "How are buttons styled?"
-- ReadLints: Check Header.tsx
+- Explore (quick): "How are buttons styled?"
+- Lint check: Check Header.tsx
 
 Phase 2: Plan (30 sec)
 ## Summary
@@ -392,23 +392,23 @@ Add login button following existing button patterns.
 ## Files to Modify
 - components/Header.tsx
   - Pattern: Follow @components/Button.tsx
-  - Tools: StrReplace, ReadLints
+  - Tools: Edit, Lint check
 
 ## Steps
-1. Find button patterns (SemanticSearch)
-2. Add button (StrReplace)
-3. Verify (ReadLints)
+1. Find button patterns (Explore (quick))
+2. Add button (Edit)
+3. Verify (Lint check)
 
 ## Time: 10 minutes
 
 Phase 3: Validation (30 sec)
-- Task: Validate (quick)
+- Agent: Validate (quick)
 - Result: PASS
 
 Phase 4: Execution
-✅ Step 1: SemanticSearch → found patterns
-✅ Step 2: StrReplace → button added
-✅ Step 3: ReadLints → clear
+✅ Step 1: Explore (quick) → found patterns
+✅ Step 2: Edit → button added
+✅ Step 3: Lint check → clear
 Complete in 8 minutes
 ```
 
@@ -422,13 +422,13 @@ Complete in 8 minutes
 
 ```
 Phase 1: Research (3 min)
-- SemanticSearch: "How are pages structured?"
-- Task (parallel x3):
+- Explore (quick): "How are pages structured?"
+- Agent (parallel x3):
   - "Find page patterns"
   - "Find component patterns"
   - "Find API patterns"
-- ReadLints: Check target files
-- AskQuestion: "Which widgets for MVP?"
+- Lint check: Check target files
+- AskUserQuestion: "Which widgets for MVP?"
 
 Phase 2: Plan (2 min)
 ## Summary
@@ -440,9 +440,9 @@ Create dashboard with stats, activity feed, settings.
 - app/api/dashboard/stats/route.ts
 
 ## Tool Strategy
-- Exploration: Task (explore) x3 parallel
-- Implementation: Write, StrReplace
-- Validation: Shell (tests), ReadLints
+- Exploration: Agent (Explore) x3 parallel
+- Implementation: Write, Edit
+- Validation: Bash (tests), Lint check
 
 ## Risk Mitigation
 - Checkpoint before API changes
@@ -451,7 +451,7 @@ Create dashboard with stats, activity feed, settings.
 ## Time: 45 minutes
 
 Phase 3: Validation (1 min)
-- Task: Validate feasibility
+- Agent: Validate feasibility
 - Warning: API dependency
 - Result: PASS with caveats
 
@@ -461,7 +461,7 @@ Phase 4: Execution
 📸 Checkpoint created
 ✅ Dashboard page created
 ✅ Components created
-⚠️ Tests failing → /grind loop (2 iterations)
+⚠️ Tests failing → fix-and-retest loop (2 iterations)
 ✅ Tests passing
 Complete in 52 minutes
 ```
@@ -476,14 +476,14 @@ Complete in 52 minutes
 
 ```
 Phase 1: Research (3 min)
-- SemanticSearch: "How is auth implemented?"
-- Task (parallel x4):
+- Explore (quick): "How is auth implemented?"
+- Agent (parallel x4):
   - "Find JWT validation"
   - "Find session management"
   - "Find OAuth integrations"
   - "Find password hashing"
-- ReadLints: Check all auth files (found 2 warnings)
-- AskQuestion: "Target session provider?"
+- Lint check: Check all auth files (found 2 warnings)
+- AskUserQuestion: "Target session provider?"
 
 Phase 2: Plan (3 min)
 ## Summary
@@ -508,7 +508,7 @@ Migrate from JWT to sessions with zero downtime.
 ## Time: 3 hours
 
 Phase 3: Validation (1 min)
-- Task: Validate (comprehensive)
+- Agent: Validate (comprehensive)
 - Warning: High risk, breaking change
 - Suggestion: Phased rollout
 - Result: PASS with warnings
@@ -521,7 +521,7 @@ Phase 4: Execution
 📸 Checkpoint 2 created
 ✅ Phase 4: Middleware updated
 ⚠️ Tests failing (auth edge case)
-→ /grind loop (3 iterations)
+→ fix-and-retest loop (3 iterations)
 ✅ Tests passing
 📸 Checkpoint 3 created
 ✅ Phase 5: JWT code removed
@@ -570,10 +570,10 @@ Complete in 3.5 hours
 **Good**: "Let me research existing patterns first"
 
 Research phase should:
-- Use SemanticSearch for patterns
+- Use Explore (quick) for patterns
 - Launch parallel subagents
-- Check code health with ReadLints
-- Batch questions with AskQuestion
+- Check code health with Lint check
+- Batch questions with AskUserQuestion
 
 ### 2. Validate Before Presenting
 
@@ -600,7 +600,7 @@ Tracking should:
 ### 4. Iterate When Stuck
 
 **Bad**: Give up after first failure  
-**Good**: Use /grind loop (max 5 iterations)
+**Good**: Use the fix-and-retest loop (max 5 iterations)
 
 Iteration should:
 - Run tests → identify failures
@@ -630,7 +630,7 @@ Re-planning should:
 
 **Solutions**:
 - Time-box to 3 minutes max
-- Use model="fast" for subagents
+- Use model="haiku" for subagents
 - Narrow target_directories
 - Accept "good enough" patterns
 
@@ -646,11 +646,11 @@ Re-planning should:
 
 ### Tests Not Passing
 
-**Problem**: /grind loop failing after 5 iterations
+**Problem**: fix-and-retest loop failing after 5 iterations
 
 **Solutions**:
 - Report BLOCKED with details
-- AskQuestion for guidance
+- AskUserQuestion for guidance
 - Re-plan approach
 - Check for missing dependencies
 
@@ -687,7 +687,7 @@ Re-planning should:
 
 - Major feature additions
 - Architecture improvements
-- Integration with new Cursor features
+- Integration with new Claude Code features
 - Community feedback incorporation
 
 ---
@@ -698,22 +698,22 @@ Re-planning should:
 
 The optimized plan mode now automatically selects and uses MCP servers:
 
-**Browser MCP** (cursor-ide-browser):
+**Browser MCP** (claude-in-chrome):
 - Triggered by: UI changes, visual verification needs
 - Automatic actions: Snapshot → Interact → Screenshot → Verify
 - Cost: High → Used only when essential
 
-**GitHub MCP** (user-github):
+**GitHub MCP** (github):
 - Triggered by: PR/issue operations, git commands
 - Automatic actions: Fetch → Implement → Create PR
 - Cost: Moderate → Used for all git operations
 
-**ESLint MCP** (user-ESLint):
+**ESLint MCP** (eslint):
 - Triggered by: ALL code changes (automatic)
 - Automatic actions: Lint → Auto-fix → Report
 - Cost: Low → Run after every edit
 
-**Context7 MCP** (user-context7):
+**Context7 MCP** (context7):
 - Triggered by: Library/framework questions
 - Automatic actions: Fetch docs → Apply best practices
 - Cost: Low → Fetch proactively
@@ -741,10 +741,9 @@ For complex tasks, automatically launch 2-4 parallel subagents:
 
 **Configuration**:
 ```typescript
-Task:
+Agent:
   description="Explore [area]"
-  model="fast"  // Cost optimization
-  readonly=true  // Safety
+  model="haiku"  // Cost optimization
   run_in_background=true  // Non-blocking
 ```
 
@@ -777,14 +776,14 @@ Tier 1 (Always Try First):
 - Grep: Exact text search
 
 If Tier 1 insufficient → Escalate to Tier 2:
-- SemanticSearch: Conceptual search
-- StrReplace: Small edits
+- Explore (quick): Conceptual search
+- Edit: Small edits
 - Write: New files
 
 If Tier 2 inadequate → Escalate to Tier 3:
-- Task: Complex exploration
-- Shell: Command execution
-- ReadLints: Quality checks
+- Agent: Complex exploration
+- Bash: Command execution
+- Lint check: Quality checks
 
 If Tier 3 insufficient → Escalate to Tier 4:
 - Parallel subagents: Multi-angle discovery
@@ -810,9 +809,9 @@ Monitor tool costs:
 - `docs/builtin/WorkflowTools.md` - Plan Mode capabilities
 - `docs/builtin/CodeAnalysis.md` - Research tools
 - `docs/best-practices/ToolSelection.md` - Tool optimization
-- `.cursor/rules/plan-mode-*.md` - Implementation rules
-- `.cursor/skills/*/SKILL.md` - Implementation skills
-- `.cursor/docs/MCP-INTEGRATION-GUIDE.md` - MCP server usage guide
+- `.claude/rules/plan-mode-*.md` - Implementation rules
+- `.claude/skills/*/SKILL.md` - Implementation skills
+- `.claude/docs/MCP-INTEGRATION-GUIDE.md` - MCP server usage guide
 
 ---
 

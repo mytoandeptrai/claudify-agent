@@ -118,9 +118,9 @@
 
 ## Related Documentation
 
-- `.cursor/hooks/auto-security-review.ts` - Security scan hook
-- `.cursor/rules/security-critical.md` - Security rules
-- `.cursor/hooks.config.json` - Configuration
+- `.claude/hooks/auto-security-review.ts` - Security scan hook
+- `.claude/rules/security-critical.md` - Security rules
+- `.claude/hooks.config.json` - Configuration
 - `AGENT-INSTRUCTION-BEST-PRACTICES.md` - Security research (AppSec Santa findings)
 
 ---

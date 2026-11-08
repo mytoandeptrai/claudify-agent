@@ -7,7 +7,7 @@
 
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
-import { cp, access } from 'fs/promises';
+import { cp } from 'fs/promises';
 import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,9 +28,18 @@ if (command === 'init') {
     await cp(join(packageRoot, 'CLAUDE.md'), join(targetDir, 'CLAUDE.md'));
     console.log('  ✅ Created CLAUDE.md (Root agent instruction guidelines)');
 
-    // 2. Copy .claude folder
-    await cp(join(packageRoot, '.claude'), join(targetDir, '.claude'), { recursive: true });
-    console.log('  ✅ Created .claude/ (Skills and automated verification scripts)');
+    // 2. Copy .claude folder (never overwrite the project's own settings.json)
+    const settingsSrc = join(packageRoot, '.claude', 'settings.json');
+    const settingsDest = join(targetDir, '.claude', 'settings.json');
+    const keepSettings = existsSync(settingsDest);
+    await cp(join(packageRoot, '.claude'), join(targetDir, '.claude'), {
+      recursive: true,
+      filter: (src) => !(keepSettings && src === settingsSrc),
+    });
+    console.log('  ✅ Created .claude/ (Skills, rules and Claude Code hooks)');
+    if (keepSettings) {
+      console.log(`  ⚠️  Kept your existing .claude/settings.json — merge the "hooks" block from ${settingsSrc} manually.`);
+    }
 
     console.log('\n🎉 Successfully initialized Claudify!');
     console.log('👉 Next Steps:');

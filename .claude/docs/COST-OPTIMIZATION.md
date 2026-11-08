@@ -1,7 +1,7 @@
 # Cost Optimization Guide
 
 ## Overview
-Track and optimize token consumption and execution costs for Cursor agent operations. This guide provides formulas, tracking methods, and optimization strategies.
+Track and optimize token consumption and execution costs for Claude Code agent operations. This guide provides formulas, tracking methods, and optimization strategies.
 
 ## Tool Cost Hierarchy
 
@@ -12,25 +12,25 @@ Tool          | Est. Tokens | When to Use
 Read          | 500         | Single file access
 Glob          | 200         | Pattern-based file finding
 Grep          | 300         | Exact text/symbol search
-Shell         | 100         | Command execution
+Bash         | 100         | Command execution
 Write         | 1000        | Creating new files
-StrReplace    | 500         | Small targeted edits (<50 lines)
+Edit    | 500         | Small targeted edits (<50 lines)
 ```
 
 ### Tier 2: Moderate Cost
 ```
 Tool               | Est. Tokens | When to Use
 -------------------|-------------|----------------------------------
-SemanticSearch     | 1500        | Conceptual/pattern search
-ReadLints          | 800         | Code quality validation
-EditNotebook       | 1000        | Jupyter notebook edits
+Explore (quick)     | 1500        | Conceptual/pattern search
+Lint check          | 800         | Code quality validation
+NotebookEdit       | 1000        | Jupyter notebook edits
 ```
 
 ### Tier 3: Higher Cost
 ```
 Tool          | Est. Tokens | When to Use
 --------------|-------------|----------------------------------
-Task          | 3000        | Complex exploration (subagents)
+Agent          | 3000        | Complex exploration (subagents)
 WebSearch     | 2000        | Web search operations
 WebFetch      | 2500        | Fetch web content
 ```
@@ -39,10 +39,10 @@ WebFetch      | 2500        | Fetch web content
 ```
 MCP Server              | Est. Tokens | When to Use
 ------------------------|-------------|----------------------------------
-cursor-ide-browser      | 5000+       | Visual verification, UI testing
-user-github             | 2000        | Git/GitHub operations
-user-chrome-devtools    | 3000        | Performance audits
-user-playwright         | 4000        | Cross-browser E2E testing
+claude-in-chrome      | 5000+       | Visual verification, UI testing
+github             | 2000        | Git/GitHub operations
+chrome-devtools    | 3000        | Performance audits
+playwright         | 4000        | Cross-browser E2E testing
 ```
 
 ## Cost Calculation Formulas
@@ -51,10 +51,10 @@ user-playwright         | 4000        | Cross-browser E2E testing
 ```typescript
 function calculateToolCost(toolCalls: ToolCall[]): number {
   const costEstimates: Record<string, number> = {
-    'Shell': 100, 'Read': 500, 'Write': 1000, 
-    'Glob': 200, 'Grep': 300, 'StrReplace': 500,
-    'ReadLints': 800, 'SemanticSearch': 1500,
-    'Task': 3000, 'WebSearch': 2000, 'WebFetch': 2500,
+    'Bash': 100, 'Read': 500, 'Edit': 800, 'MultiEdit': 1000, 'Write': 1000,
+    'Glob': 200, 'Grep': 300,
+    'LSP': 800,
+    'Agent': 3000, 'Task': 3000, 'WebSearch': 2000, 'WebFetch': 2500,
   };
   
   let totalCost = 0;
@@ -74,10 +74,10 @@ function calculateToolCost(toolCalls: ToolCall[]): number {
 ```typescript
 function calculateEfficiency(tools: ToolCall[]): number {
   const tierScores: Record<string, number> = {
-    'Shell': 100, 'Read': 100, 'Write': 100, 
+    'Bash': 100, 'Read': 100, 'Edit': 100, 'MultiEdit': 100, 'Write': 100,
     'Glob': 100, 'Grep': 100,
-    'ReadLints': 80, 'SemanticSearch': 80,
-    'Task': 60, 'WebSearch': 60, 'WebFetch': 60,
+    'LSP': 80,
+    'Agent': 60, 'Task': 60, 'WebSearch': 60, 'WebFetch': 60,
   };
   
   let totalScore = 0;
@@ -120,17 +120,17 @@ The `plan-quality-tracker.ts` hook automatically tracks:
 ### Manual Tracking
 ```bash
 # View recent plan costs
-cat .cursor/plan-metrics.json | jq '.[-10:] | .[].cost_estimate'
+cat .claude/plan-metrics.json | jq '.[-10:] | .[].cost_estimate'
 
 # Calculate average cost
-cat .cursor/plan-metrics.json | jq '[.[].cost_estimate] | add / length'
+cat .claude/plan-metrics.json | jq '[.[].cost_estimate] | add / length'
 
 # Find most expensive plans
-cat .cursor/plan-metrics.json | jq 'sort_by(-.cost_estimate) | .[0:5]'
+cat .claude/plan-metrics.json | jq 'sort_by(-.cost_estimate) | .[0:5]'
 ```
 
 ### Cost Alerts
-Configure in `.cursor/hooks.config.json`:
+Configure in `.claude/hooks.config.json`:
 ```json
 {
   "planTracking": {
@@ -149,19 +149,19 @@ Configure in `.cursor/hooks.config.json`:
 ```
 1. Try Tier 1 first:
    - Need file? → Read (know path) or Glob (pattern)
-   - Need text? → Grep (exact) or SemanticSearch (concept)
+   - Need text? → Grep (exact) or Explore (quick) (concept)
    
 2. If Tier 1 fails → Escalate to Tier 2:
-   - Complex search? → SemanticSearch
-   - Small edit? → StrReplace
+   - Complex search? → Explore (quick)
+   - Small edit? → Edit
    
 3. If Tier 2 inadequate → Escalate to Tier 3:
-   - Broad exploration? → Task (subagent)
+   - Broad exploration? → Agent (subagent)
    - External info? → WebSearch/WebFetch
    
 4. If Tier 3 insufficient → Escalate to Tier 4:
-   - Visual verification? → cursor-ide-browser
-   - Git operations? → user-github
+   - Visual verification? → claude-in-chrome
+   - Git operations? → github
 ```
 
 **Savings**: 30-50% reduction in token consumption
@@ -176,7 +176,7 @@ Configure in `.cursor/hooks.config.json`:
 - ✅ Documentation lookup
 - ❌ Simple file operations (use Read/Write)
 - ❌ Basic searches (use Grep/Glob)
-- ❌ Code edits (use StrReplace/Write)
+- ❌ Code edits (use Edit/Write)
 
 **Savings**: 40-60% reduction for typical tasks
 
@@ -190,10 +190,9 @@ Configure in `.cursor/hooks.config.json`:
 
 **Configuration**:
 ```typescript
-Task:
+Agent:
   description="Explore [area]"
-  model="fast"  // Cost optimization
-  readonly=true  // Safety
+  model="haiku"  // Cost optimization
   run_in_background=true  // Non-blocking
 ```
 
@@ -201,7 +200,7 @@ Task:
 **Rule**: Spend 2-3 min on research before planning
 
 **Research Tools** (cheap):
-- SemanticSearch: 1500 tokens
+- Explore (quick): 1500 tokens
 - Grep: 300 tokens
 - Glob: 200 tokens
 
@@ -214,8 +213,8 @@ Task:
 **Rule**: Always validate after substantive changes
 
 **Validation Sequence**:
-1. ReadLints (800 tokens) - catches errors early
-2. Shell tests (100 tokens) - verifies functionality
+1. Lint check (800 tokens) - catches errors early
+2. Bash tests (100 tokens) - verifies functionality
 3. MCP validation (if used) - ensures tool success
 
 **Benefit**:
@@ -249,10 +248,10 @@ Task:
 
 **Before** (No optimization):
 ```
-1. Task (explore): "Find auth bug" - 3000 tokens
-2. browser_snapshot - 5000 tokens
-3. StrReplace - 500 tokens
-4. ReadLints - 800 tokens
+1. Agent (Explore): "Find auth bug" - 3000 tokens
+2. claude-in-chrome screenshot - 5000 tokens
+3. Edit - 500 tokens
+4. Lint check - 800 tokens
 Total: 9,300 tokens
 Efficiency: 52%
 ```
@@ -261,8 +260,8 @@ Efficiency: 52%
 ```
 1. Grep: "find login function" - 300 tokens
 2. Read: auth code - 500 tokens
-3. StrReplace: fix bug - 500 tokens
-4. ReadLints: validate - 800 tokens
+3. Edit: fix bug - 500 tokens
+4. Lint check: validate - 800 tokens
 Total: 2,100 tokens
 Efficiency: 88%
 Savings: 77% reduction
@@ -272,22 +271,22 @@ Savings: 77% reduction
 
 **Before** (No optimization):
 ```
-1. browser_snapshot - 5000 tokens
-2. Task x3 (parallel) - 9000 tokens
+1. claude-in-chrome screenshot - 5000 tokens
+2. Agent x3 (parallel) - 9000 tokens
 3. Write x5 files - 5000 tokens
-4. user-github (create PR) - 2000 tokens
+4. github (create PR) - 2000 tokens
 Total: 21,000 tokens
 Efficiency: 58%
 ```
 
 **After** (Optimized):
 ```
-1. SemanticSearch: patterns - 1500 tokens
+1. Explore (quick): patterns - 1500 tokens
 2. Read: 3 examples - 1500 tokens
 3. Write x5 files - 5000 tokens
-4. ReadLints - 800 tokens
-5. Shell (tests) - 100 tokens
-6. user-github (create PR) - 2000 tokens
+4. Lint check - 800 tokens
+5. Bash (tests) - 100 tokens
+6. github (create PR) - 2000 tokens
 Total: 10,900 tokens
 Efficiency: 76%
 Savings: 48% reduction
@@ -297,21 +296,21 @@ Savings: 48% reduction
 
 **Before** (No optimization):
 ```
-1. Task x4 (exploration) - 12,000 tokens
-2. browser_snapshot x5 - 25,000 tokens
-3. StrReplace x10 - 5000 tokens
-4. ReadLints x3 - 2400 tokens
+1. Agent x4 (exploration) - 12,000 tokens
+2. claude-in-chrome screenshot x5 - 25,000 tokens
+3. Edit x10 - 5000 tokens
+4. Lint check x3 - 2400 tokens
 Total: 44,400 tokens
 Efficiency: 45%
 ```
 
 **After** (Optimized):
 ```
-1. Task x3 (parallel, targeted) - 9000 tokens
+1. Agent x3 (parallel, targeted) - 9000 tokens
 2. Grep: find usages - 300 tokens
-3. StrReplace x10 - 5000 tokens
-4. ReadLints (auto) - 800 tokens
-5. Shell (tests) - 100 tokens
+3. Edit x10 - 5000 tokens
+4. Lint check (auto) - 800 tokens
+5. Bash (tests) - 100 tokens
 Total: 15,200 tokens
 Efficiency: 72%
 Savings: 66% reduction
@@ -381,9 +380,9 @@ Annual savings: $4,800 per developer
 
 ## Related Documentation
 - `AGENT-INSTRUCTION-BEST-PRACTICES.md` - Research backing
-- `.cursor/skills/tool-selection/SKILL.md` - Tool selection
-- `.cursor/plan-metrics.json` - Historical cost data
-- `.cursor/hooks.config.json` - Configuration
+- `.claude/skills/tool-selection/SKILL.md` - Tool selection
+- `.claude/plan-metrics.json` - Historical cost data
+- `.claude/hooks.config.json` - Configuration
 
 ## Maintenance
 

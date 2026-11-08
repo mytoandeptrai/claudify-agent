@@ -23,8 +23,8 @@
 
 ### Cost Distribution
 - **Tier 1 Tools** (Read/Glob/Grep): 0% (target: >60%)
-- **Tier 2 Tools** (SemanticSearch/Write): 0%
-- **Tier 3 Tools** (Task/ReadLints): 0%
+- **Tier 2 Tools** (Explore (quick)/Write): 0%
+- **Tier 3 Tools** (Agent/Lint check): 0%
 - **Tier 4 Tools** (MCP/Browser): 0% (target: <30%)
 
 ---
@@ -62,7 +62,7 @@
 1. **Tool Escalation**: Start with Tier 1, escalate only if needed
 2. **Research-First**: 2-3 min research prevents wasted iterations
 3. **MCP Optimization**: Use MCP only when essential
-4. **Fast Model**: Use `model="fast"` for 90% of subagents
+4. **Fast Model**: Use `model="haiku"` for 90% of subagents
 
 ---
 
@@ -136,9 +136,9 @@ Efficiency = (Tier1_Usage × 1.0 + Tier2_Usage × 0.8 + Tier3_Usage × 0.6 + Tie
 
 ## Related Documentation
 
-- `.cursor/docs/COST-OPTIMIZATION.md` - Complete cost optimization guide
-- `.cursor/hooks.config.json` - Cost tracking configuration
-- `.cursor/skills/tool-selection/SKILL.md` - Tool selection decision trees
+- `.claude/docs/COST-OPTIMIZATION.md` - Complete cost optimization guide
+- `.claude/hooks.config.json` - Cost tracking configuration
+- `.claude/skills/tool-selection/SKILL.md` - Tool selection decision trees
 - `AGENT-INSTRUCTION-BEST-PRACTICES.md` - Research backing (ETH Zurich cost findings)
 
 ---

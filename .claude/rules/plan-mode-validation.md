@@ -5,7 +5,7 @@
 Before presenting plan to user:
 
 1. **Feasibility Check**
-   - Task subagent: "Validate this plan"
+   - Agent subagent: "Validate this plan"
    - Check file accessibility
    - Verify tool availability
    - Estimate time accuracy
@@ -60,7 +60,7 @@ If FAIL:
 ## Validation Subagent Pattern
 
 ```
-Task:
+Agent:
   description="Validate implementation plan"
   prompt="Review this plan for feasibility:
   
@@ -79,8 +79,7 @@ Task:
   Issues: [List specific problems]
   Suggestions: [Concrete improvements]
   Confidence: [High/Medium/Low]"
-  subagent_type="generalPurpose"
-  readonly=true
+  subagent_type="Plan"  // read-only architect agent
 ```
 
 ## Examples
@@ -91,7 +90,7 @@ Plan: "Add login button to header"
 
 Validation checks:
 - ✅ File exists: components/Header.tsx
-- ✅ Tool available: StrReplace
+- ✅ Tool available: Edit
 - ✅ Time realistic: 10 minutes
 - ✅ No dependencies
 - ✅ Low risk
@@ -106,7 +105,7 @@ Validation checks:
 - ✅ Files accessible: src/auth/, app/api/auth/
 - ⚠️ Risk: Breaking change (checkpoint needed)
 - ⚠️ Time: 2 hours might be optimistic → suggest 3 hours
-- ✅ Tools available: Read, Write, Shell, ReadLints
+- ✅ Tools available: Read, Write, Bash, Lint check
 - ✅ Fallback: Keep JWT code until tests pass
 
 Result: PASS with warnings → Present with caveats

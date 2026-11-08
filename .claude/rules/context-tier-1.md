@@ -38,4 +38,4 @@ Test pattern: @__tests__/auth.test.ts
 
 **Note**: This is the MINIMAL context. Task-specific context loaded from Tier 2 based on keywords and file patterns.
 
-**Rule**: If it's not in this file, agent discovers via search tools (Grep, SemanticSearch, Task).
+**Rule**: If it's not in this file, agent discovers via search tools (Grep, Explore (quick), Agent).

@@ -11,7 +11,7 @@ Keywords: "auth", "security", "password", "token", "encrypt", "API key", "secret
 - Use strong crypto (SHA-256+, AES-256)
 
 ## Security Checklist
-See `.cursor/security-report.md` for OWASP Top 10 checklist
+See `.claude/security-report.md` for OWASP Top 10 checklist
 
 ## Examples
 - Auth pattern: `@src/auth/validateToken.ts`

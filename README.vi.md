@@ -94,6 +94,7 @@ graph TD
 | **Python Guide** | `.claude/skills/python-guide/SKILL.md` | FastAPI, Django, Type hints & Pydantic. |
 | **MCP Mastery** | `.claude/skills/mcp-mastery/SKILL.md` | Cấu hình và gọi các Model Context Protocol servers. |
 | **Debug Optimizer** | `.claude/skills/debug-optimizer/SKILL.md` | Quy trình truy tìm nguyên nhân gốc rễ (Root Cause) 4 bước. |
+| **Security Guide** | `.claude/skills/security-guide/SKILL.md` | OWASP Top 10: quản lý secrets, chống injection, phân quyền, validate input. |
 | **Tool Selection** | `.claude/skills/tool-selection/SKILL.md` | Chiến lược chọn đúng tool nhằm giảm thiểu số lần gọi API. |
 | **Plan Mastery** | `.claude/skills/plan-mode-mastery/SKILL.md` | Lập kế hoạch bài bản trước khi bắt đầu sinh code. |
 | **Vite Guide** | `.claude/skills/vite-guide/SKILL.md` | Cấu hình bundling SPA tối ưu hiệu năng. |

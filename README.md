@@ -93,6 +93,7 @@ graph TD
 | **Python Guide** | `.claude/skills/python-guide/SKILL.md` | FastAPI, Django, Type hints & Pydantic. |
 | **MCP Mastery** | `.claude/skills/mcp-mastery/SKILL.md` | Model Context Protocol configuration and tool calling patterns. |
 | **Debug Optimizer** | `.claude/skills/debug-optimizer/SKILL.md` | 4-step systematic root-cause debugging protocol. |
+| **Security Guide** | `.claude/skills/security-guide/SKILL.md` | OWASP Top 10: secrets, injection, auth checks, input validation. |
 | **Tool Selection** | `.claude/skills/tool-selection/SKILL.md` | Decision matrix to minimize excessive LLM tool calls. |
 | **Plan Mastery** | `.claude/skills/plan-mode-mastery/SKILL.md` | Systematic research and execution planning before code generation. |
 | **Vite Guide** | `.claude/skills/vite-guide/SKILL.md` | Modern SPA build optimization and bundling practices. |

@@ -1,3 +1,8 @@
+---
+name: tool-selection
+description: Decision trees for choosing the cheapest effective Claude Code tool (Read, Glob, Grep, Edit, Bash, Agent, MCP) per step. Use when planning steps or tool usage feels expensive.
+---
+
 # SKILL.md: Optimal Tool Selection
 
 ## Description
@@ -24,35 +29,35 @@ Automatically select best tools for each plan step based on task type, complexit
 | Read single file | Read | Know exact path |
 | Find multiple files | Glob + Read | Pattern matching |
 | Exact text search | Grep | Specific strings/symbols |
-| Conceptual search | SemanticSearch | Behavior/pattern |
-| Broad exploration | Task (explore) | Multi-file investigation |
+| Conceptual search | Explore (quick) | Behavior/pattern |
+| Broad exploration | Agent (Explore) | Multi-file investigation |
 
 ### For Implementation
 
 | Goal | Tool | When |
 |------|------|------|
 | New file | Write | Creating from scratch |
-| Small edit (<50 lines) | StrReplace | Targeted changes |
+| Small edit (<50 lines) | Edit | Targeted changes |
 | Large rewrite (>50 lines) | Write | Replace entire file |
-| Jupyter notebook | EditNotebook | Cell-level edits |
+| Jupyter notebook | NotebookEdit | Cell-level edits |
 
 ### For Validation
 
 | Goal | Tool | When |
 |------|------|------|
-| Code quality | ReadLints | After edits |
-| Functionality | Shell (tests) | Run test suite |
+| Code quality | Lint check | After edits |
+| Functionality | Bash (tests) | Run test suite |
 | Visual changes | Browser/Screenshot | UI verification |
-| User feedback | AskQuestion | Decisions needed |
+| User feedback | AskUserQuestion | Decisions needed |
 
 ### For Complex Tasks
 
 | Goal | Tool | When |
 |------|------|------|
 | Multi-step tracking | TodoWrite | 3+ steps |
-| Ambiguous requirements | AskQuestion | Clarification needed |
+| Ambiguous requirements | AskUserQuestion | Clarification needed |
 | Risky changes | Checkpoints | Before breaking changes |
-| Iterative fixes | /grind loop | Tests failing |
+| Iterative fixes | fix-and-retest loop | Tests failing |
 
 ## Decision Trees
 
@@ -66,10 +71,10 @@ Know file path?
    │  ├─ Yes → Grep
    │  └─ No
    │     ├─ Concept/behavior?
-   │     │  ├─ Yes → SemanticSearch
+   │     │  ├─ Yes → Explore (quick)
    │     │  └─ No
    │     └─ Broad exploration?
-   │        ├─ Yes → Task (explore)
+   │        ├─ Yes → Agent (Explore)
    │        └─ No → Glob
 ```
 
@@ -77,13 +82,13 @@ Know file path?
 
 ```
 Jupyter notebook?
-├─ Yes → EditNotebook
+├─ Yes → NotebookEdit
 └─ No
    ├─ New file?
    │  ├─ Yes → Write
    │  └─ No
    │     ├─ <50 lines change?
-   │     │  ├─ Yes → StrReplace
+   │     │  ├─ Yes → Edit
    │     │  └─ No → Write (replace entire file)
 ```
 
@@ -91,16 +96,16 @@ Jupyter notebook?
 
 ```
 Linting issues?
-├─ Yes → ReadLints
+├─ Yes → Lint check
 └─ No
    ├─ Tests needed?
-   │  ├─ Yes → Shell (npm run test)
+   │  ├─ Yes → Bash (npm run test)
    │  └─ No
    │     ├─ Visual changes?
    │     │  ├─ Yes → Browser/Screenshot
    │     │  └─ No
    │     └─ User approval?
-   │        ├─ Yes → AskQuestion
+   │        ├─ Yes → AskUserQuestion
    │        └─ No → Continue
 ```
 
@@ -108,17 +113,17 @@ Linting issues?
 
 ```
 Need performance profiling?
-├─ Yes → cursor-ide-browser (has profiling)
+├─ Yes → chrome-devtools (performance traces)
 └─ No
    ├─ Need Lighthouse audits?
-   │  ├─ Yes → user-chrome-devtools
+   │  ├─ Yes → chrome-devtools
    │  └─ No
    │     ├─ Need cross-browser testing?
-   │     │  ├─ Yes → user-playwright
+   │     │  ├─ Yes → playwright
    │     │  └─ No
    │     └─ Quick testing?
-   │        ├─ Yes → Built-in Browser (7 capabilities)
-   │        └─ No → user-selenium (accessibility)
+   │        ├─ Yes → claude-in-chrome (`/chrome`)
+   │        └─ No → selenium (accessibility)
 ```
 
 ## Tool Cost Hierarchy
@@ -132,14 +137,14 @@ Tier 1 (Cheapest, fastest):
 - Grep (exact text)
 
 Tier 2 (Moderate cost):
-- SemanticSearch (conceptual)
-- StrReplace (edits)
+- Explore (quick) (conceptual)
+- Edit (edits)
 - Write (new files)
 
 Tier 3 (Higher cost):
-- Task (subagents)
-- Shell (command execution)
-- ReadLints (analysis)
+- Agent (subagents)
+- Bash (command execution)
+- Lint check (analysis)
 
 Tier 4 (Most expensive):
 - Multiple parallel subagents
@@ -153,40 +158,40 @@ Tier 4 (Most expensive):
 
 **Pattern 1: Feature Implementation**
 ```
-1. SemanticSearch: Find patterns
+1. Explore (quick): Find patterns
 2. Read: Study examples
 3. Write: Create new files
-4. Shell: Run tests
-5. ReadLints: Verify quality
+4. Bash: Run tests
+5. Lint check: Verify quality
 ```
 
 **Pattern 2: Bug Fix**
 ```
 1. Grep: Find related code
 2. Read: Understand issue
-3. StrReplace: Fix code
-4. Shell: Run tests
-5. ReadLints: Check quality
+3. Edit: Fix code
+4. Bash: Run tests
+5. Lint check: Check quality
 ```
 
 **Pattern 3: Refactor**
 ```
-1. Task (explore): Map all usages
-2. SemanticSearch: Find patterns
+1. Agent (Explore): Map all usages
+2. Explore (quick): Find patterns
 3. Read: Review current code
 4. Checkpoint: Before changes
-5. StrReplace: Incremental changes
-6. Shell: Run tests after each
-7. ReadLints: Verify quality
+5. Edit: Incremental changes
+6. Bash: Run tests after each
+7. Lint check: Verify quality
 ```
 
 **Pattern 4: Code Review**
 ```
 1. Glob: Find changed files
 2. Read: Review diffs
-3. ReadLints: Check for issues
-4. Shell: Run tests
-5. AskQuestion: Clarify if needed
+3. Lint check: Check for issues
+4. Bash: Run tests
+5. AskUserQuestion: Clarify if needed
 ```
 
 ## Examples
@@ -196,7 +201,7 @@ Tier 4 (Most expensive):
 User: "Add /api/products endpoint"
 
 Tool sequence:
-1. **SemanticSearch**: "Find API route patterns"
+1. **Explore (quick)**: "Find API route patterns"
    - Result: app/api/users/route.ts
 
 2. **Read**: Existing route file
@@ -205,28 +210,28 @@ Tool sequence:
 3. **Write**: New route file
    - Create app/api/products/route.ts
 
-4. **Shell**: Run tests
+4. **Bash**: Run tests
    - Command: npm run test -- products.test.ts
 
-5. **ReadLints**: Check for errors
+5. **Lint check**: Check for errors
    - Verify quality
 
 **Why these tools**:
-- SemanticSearch: Find pattern (conceptual)
+- Explore (quick): Find pattern (conceptual)
 - Read: Study example (single file)
 - Write: New file (creation)
-- Shell: Validate (tests)
-- ReadLints: Quality gate
+- Bash: Validate (tests)
+- Lint check: Quality gate
 
 ### Example 2: Refactor Authentication
 
 User: "Refactor auth system"
 
 Tool sequence:
-1. **Task (explore)**: "Find all auth code"
+1. **Agent (Explore)**: "Find all auth code"
    - Parallel: JWT, sessions, OAuth, hashing
 
-2. **SemanticSearch**: "Find token validation"
+2. **Explore (quick)**: "Find token validation"
    - Result: src/auth/validateToken.ts
 
 3. **Read**: Auth files
@@ -235,22 +240,22 @@ Tool sequence:
 4. **Checkpoint**: Before breaking changes
    - Rollback point
 
-5. **StrReplace**: Incremental changes
+5. **Edit**: Incremental changes
    - Small, safe edits
 
-6. **Shell**: Run auth tests
+6. **Bash**: Run auth tests
    - After each change
 
-7. **ReadLints**: Verify quality
+7. **Lint check**: Verify quality
    - Zero new lints
 
 **Why these tools**:
-- Task: Broad exploration (complex)
-- SemanticSearch: Specific patterns
+- Agent: Broad exploration (complex)
+- Explore (quick): Specific patterns
 - Read: Understanding
 - Checkpoint: Safety (risky change)
-- StrReplace: Targeted edits
-- Shell + ReadLints: Validation
+- Edit: Targeted edits
+- Bash + Lint check: Validation
 
 ### Example 3: Fix Bug
 
@@ -263,40 +268,40 @@ Tool sequence:
 2. **Read**: Login code
    - Understand issue
 
-3. **ReadLints**: Check for errors
+3. **Lint check**: Check for errors
    - Identify problems
 
-4. **StrReplace**: Fix code
+4. **Edit**: Fix code
    - Targeted fix
 
-5. **Shell**: Run login tests
+5. **Bash**: Run login tests
    - Verify fix
 
-6. **ReadLints**: Final check
+6. **Lint check**: Final check
    - Quality gate
 
 **Why these tools**:
 - Grep: Exact search (cheap)
 - Read: Understanding
-- ReadLints: Find issues
-- StrReplace: Small fix
-- Shell + ReadLints: Validate
+- Lint check: Find issues
+- Edit: Small fix
+- Bash + Lint check: Validate
 
 ## Anti-Patterns
 
 ### ❌ Using Expensive Tools When Cheap Works
 
-Bad: Task subagent to find single file
+Bad: Agent subagent to find single file
 Good: Read (know path) or Glob (pattern)
 
 ### ❌ Using Wrong Tool for Job
 
 Bad: Grep for conceptual search
-Good: SemanticSearch for behavior
+Good: Explore (quick) for behavior
 
 ### ❌ Skipping Validation
 
-Bad: Edit without ReadLints
+Bad: Edit without Lint check
 Good: Always validate after substantive changes
 
 ### ❌ No Checkpoints for Risky Changes
@@ -312,11 +317,11 @@ Good: Checkpoint before breaking changes
 Task Type → Tool Sequence
 ─────────────────────────
 "Find [symbol/text]" → Grep → Read
-"Find [pattern/concept]" → SemanticSearch → Task (if broad)
-"Add [feature]" → Research patterns → Write/StrReplace → ReadLints → Shell
-"Fix [bug]" → Grep/SemanticSearch → Read → StrReplace → ReadLints → Shell
-"Refactor [X]" → Task (explore) → Checkpoint → StrReplace → ReadLints → Shell
-"Test [feature]" → Read existing tests → Write tests → Shell → ReadLints
+"Find [pattern/concept]" → Explore (quick) → Agent (if broad)
+"Add [feature]" → Research patterns → Write/Edit → Lint check → Bash
+"Fix [bug]" → Grep/Explore (quick) → Read → Edit → Lint check → Bash
+"Refactor [X]" → Agent (Explore) → Checkpoint → Edit → Lint check → Bash
+"Test [feature]" → Read existing tests → Write tests → Bash → Lint check
 ```
 
 ### MCP Server Selection (Automatic)
@@ -324,10 +329,10 @@ Task Type → Tool Sequence
 ```
 User Request → MCP Server
 ─────────────────────────
-"UI", "visual", "browser" → cursor-ide-browser
-"PR", "issue", "github" → user-github
-"lint", "quality" → user-ESLint
-"how to [library]", "[framework] setup" → user-context7
+"UI", "visual", "browser" → claude-in-chrome
+"PR", "issue", "github" → github
+"lint", "quality" → eslint
+"how to [library]", "[framework] setup" → context7
 ```
 
 ## Tool Escalation Protocol
@@ -341,14 +346,14 @@ Tier 1 (Try First):
 - Grep: Exact text search
 
 If Tier 1 fails → Escalate to Tier 2:
-- SemanticSearch: Conceptual search
-- StrReplace: Small edits
+- Explore (quick): Conceptual search
+- Edit: Small edits
 - Write: New files
 
 If Tier 2 insufficient → Escalate to Tier 3:
-- Task: Complex exploration
-- Shell: Run commands/tests
-- ReadLints: Quality checks
+- Agent: Complex exploration
+- Bash: Run commands/tests
+- Lint check: Quality checks
 
 If Tier 3 inadequate → Escalate to Tier 4:
 - Parallel subagents: Multi-angle exploration
@@ -359,7 +364,7 @@ If Tier 3 inadequate → Escalate to Tier 4:
 ## Automatic Validation Rules
 
 **After EVERY Code Change**:
-1. ReadLints on modified files
+1. Lint check on modified files
 2. Fix introduced lints immediately
 3. If tests exist → run relevant tests
 4. Update TodoWrite if tracking
@@ -377,22 +382,22 @@ If Tier 3 inadequate → Escalate to Tier 4:
 User: "Add authentication to checkout"
 
 Agent automatically selects:
-1. **SemanticSearch**: "How is authentication implemented?" (Tier 2)
+1. **Explore (quick)**: "How is authentication implemented?" (Tier 2)
 2. **Read**: `@src/auth/validateToken.ts` (Tier 1)
-3. **StrReplace**: Add auth to checkout (Tier 2)
-4. **ReadLints**: Verify quality (Tier 3, automatic)
-5. **Shell**: Run auth tests (Tier 3, automatic)
+3. **Edit**: Add auth to checkout (Tier 2)
+4. **Lint check**: Verify quality (Tier 3, automatic)
+5. **Bash**: Run auth tests (Tier 3, automatic)
 
 ### Example: Automatic MCP Use
 
 User: "Fix issue #123"
 
 Agent automatically:
-1. **user-github**: Fetch issue #123
+1. **github**: Fetch issue #123
 2. **Grep**: Find related code
-3. **StrReplace**: Implement fix
-4. **user-ESLint**: Check quality
-5. **user-github**: Create PR linking issue
+3. **Edit**: Implement fix
+4. **eslint**: Check quality
+5. **github**: Create PR linking issue
 
 ---
 
@@ -412,7 +417,7 @@ Agent automatically:
 **Problem**: Tool execution slow
 
 **Solutions**:
-1. Use model="fast" for subagents
+1. Use model="haiku" for subagents
 2. Narrow scope (target_directories)
 3. Try cheaper alternative
 4. Time-box execution

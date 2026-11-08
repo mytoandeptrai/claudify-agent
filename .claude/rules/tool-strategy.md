@@ -2,21 +2,21 @@
 
 ## Cost Hierarchy (Start Cheap)
 Tier 1: Read, Glob, Grep (fastest)
-Tier 2: SemanticSearch, StrReplace, Write
-Tier 3: Task, Shell, ReadLints
+Tier 2: Explore (quick), Edit, Write
+Tier 3: Agent, Bash, Lint check
 Tier 4: Parallel subagents, Browser MCP
 
 ## Automatic Triggers
-- After edits → ReadLints automatically
-- After substantive changes → Shell (tests)
-- Ambiguous requirements → AskQuestion (batch)
-- Complex exploration → Task (parallel subagents)
+- After edits → Lint check automatically
+- After substantive changes → Bash (tests)
+- Ambiguous requirements → AskUserQuestion (batch)
+- Complex exploration → Agent (parallel subagents)
 
 ## MCP Servers
-- cursor-ide-browser: UI changes, visual verification
-- user-github: PR/issue operations
-- user-ESLint: Code quality checks
-- user-context7: Library documentation
+- claude-in-chrome: UI changes, visual verification
+- github: PR/issue operations
+- eslint: Code quality checks
+- context7: Library documentation
 
 ## Pattern
-Follow tool selection examples in @.cursor/skills/tool-selection/SKILL.md
+Follow tool selection examples in @.claude/skills/tool-selection/SKILL.md

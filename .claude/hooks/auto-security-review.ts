@@ -1,16 +1,16 @@
-// .cursor/hooks/auto-security-review.ts
-// Automatic security vulnerability scanning for AI-generated code
+// .claude/hooks/auto-security-review.ts
+// Stop hook — scans code Claude wrote this turn for security vulnerabilities
 
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
-
-export {};
-
-interface SecurityHookInput {
-  conversation_id: string;
-  status: "completed" | "aborted" | "error";
-  loop_count: number;
-}
+import {
+  readHookInput,
+  loadCurrentTurn,
+  writtenCode,
+  stateDir,
+  blockOrNotify,
+  done,
+} from "./lib/claude-hook.ts";
 
 interface SecurityFinding {
   severity: "critical" | "high" | "medium" | "low";
@@ -20,16 +20,19 @@ interface SecurityFinding {
   suggestion: string;
 }
 
+// Security settings live under "validation" in .claude/hooks.config.json
 interface SecurityConfig {
-  enableSecurityReview?: boolean;
-  severityThreshold?: "critical" | "high" | "medium" | "low";
-  scanPatterns?: {
-    hardcodedCredentials?: boolean;
-    sqlInjection?: boolean;
-    xss?: boolean;
-    insecureCrypto?: boolean;
-    pathTraversal?: boolean;
-    commandInjection?: boolean;
+  validation?: {
+    enableSecurityReview?: boolean;
+    securitySeverityThreshold?: "critical" | "high" | "medium" | "low";
+    securityScanPatterns?: {
+      hardcodedCredentials?: boolean;
+      sqlInjection?: boolean;
+      xss?: boolean;
+      insecureCrypto?: boolean;
+      pathTraversal?: boolean;
+      commandInjection?: boolean;
+    };
   };
 }
 
@@ -151,25 +154,18 @@ const SECURITY_PATTERNS = {
   ]
 };
 
-// Read input from stdin
-const stdin = await new Promise<string>((resolve) => {
-  let data = "";
-  process.stdin.on("data", (chunk) => (data += chunk));
-  process.stdin.on("end", () => resolve(data));
-});
-
-const input: SecurityHookInput = JSON.parse(stdin);
+const input = await readHookInput();
 
 // Load configuration
-const configPath = join(process.cwd(), '.cursor/hooks.config.json');
+const configPath = join(stateDir(input), 'hooks.config.json');
 const config: SecurityConfig = existsSync(configPath) 
   ? JSON.parse(readFileSync(configPath, 'utf-8')) 
   : {};
 
 const securityConfig = {
-  enableSecurityReview: (config as any).validation?.enableSecurityReview !== false,
-  severityThreshold: (config as any).validation?.securitySeverityThreshold || "high",
-  scanPatterns: (config as any).validation?.securityScanPatterns || {
+  enableSecurityReview: config.validation?.enableSecurityReview !== false,
+  severityThreshold: config.validation?.securitySeverityThreshold || "high",
+  scanPatterns: config.validation?.securityScanPatterns || {
     hardcodedCredentials: true,
     sqlInjection: true,
     xss: true,
@@ -179,56 +175,21 @@ const securityConfig = {
   }
 };
 
-// Only run on completion
-if (input.status !== "completed") {
-  console.log(JSON.stringify({}));
-  process.exit(0);
-}
-
 if (!securityConfig.enableSecurityReview) {
   console.error("[Security Review] ⚠ Security review disabled in config");
-  console.log(JSON.stringify({}));
-  process.exit(0);
+  done();
 }
 
 console.error("[Security Review] Running automatic security scan...");
 
 const findings: SecurityFinding[] = [];
 
-// Try to scan changed files
-const conversationFile = join(process.cwd(), `.cursor/conversations/${input.conversation_id}.json`);
-let conversation;
-try {
-  if (existsSync(conversationFile)) {
-    conversation = JSON.parse(readFileSync(conversationFile, 'utf-8'));
-  }
-} catch {
-  console.error("[Security Review] Could not read conversation file, proceeding with scan");
-  conversation = null;
-}
-
-// Extract code from conversation messages
-function extractCodeFromConversation(conv: any): string[] {
-  const codeBlocks: string[] = [];
-  
-  if (!conv?.messages) return codeBlocks;
-  
-  for (const message of conv.messages) {
-    if (message.content) {
-      // Extract code blocks
-      const codeBlockRegex = /```(?:typescript|javascript|tsx|ts|js)?\n([\s\S]*?)```/g;
-      let match;
-      while ((match = codeBlockRegex.exec(message.content)) !== null) {
-        codeBlocks.push(match[1]);
-      }
-    }
-  }
-  
-  return codeBlocks;
-}
+// Scan the code Claude wrote (Write/Edit/MultiEdit) in this turn
+const turn = loadCurrentTurn(input.transcript_path);
+const codeToScan = turn ? writtenCode(turn.toolUses) : [];
 
 // Scan code for security issues
-function scanCodeForSecurity(code: string, patternCategory: string): SecurityFinding[] {
+function scanCodeForSecurity(code: string, file: string, patternCategory: string): SecurityFinding[] {
   const categoryFindings: SecurityFinding[] = [];
   const patterns = SECURITY_PATTERNS[patternCategory as keyof typeof SECURITY_PATTERNS];
   
@@ -243,6 +204,7 @@ function scanCodeForSecurity(code: string, patternCategory: string): SecurityFin
         severity,
         type,
         description: `Found ${matches.length} occurrence(s) of potentially insecure pattern`,
+        location: file,
         suggestion
       });
     }
@@ -251,23 +213,18 @@ function scanCodeForSecurity(code: string, patternCategory: string): SecurityFin
   return categoryFindings;
 }
 
-// Scan all pattern categories
-const codeToScan = conversation ? extractCodeFromConversation(conversation) : [];
-
-// If no code extracted, skip scan
+// If no code was written, skip scan
 if (codeToScan.length === 0) {
-  console.error("[Security Review] ⚠ No code blocks found to scan");
-  console.log(JSON.stringify({}));
-  process.exit(0);
+  console.error("[Security Review] ⚠ No code changes found to scan");
+  done();
 }
 
-const combinedCode = codeToScan.join('\n');
-
-// Run security scans
+// Run security scans on each written chunk
 const patternCategories = Object.keys(SECURITY_PATTERNS);
-for (const category of patternCategories) {
-  const categoryFindings = scanCodeForSecurity(combinedCode, category);
-  findings.push(...categoryFindings);
+for (const { file, code } of codeToScan) {
+  for (const category of patternCategories) {
+    findings.push(...scanCodeForSecurity(code, file, category));
+  }
 }
 
 // Filter by severity threshold
@@ -284,12 +241,12 @@ const highCount = filteredFindings.filter(f => f.severity === "high").length;
 const mediumCount = filteredFindings.filter(f => f.severity === "medium").length;
 const lowCount = filteredFindings.filter(f => f.severity === "low").length;
 
-const reportPath = join(process.cwd(), '.cursor/security-report.md');
+const reportPath = join(stateDir(input), 'security-report.md');
 
 const securityReport = `## Security Scan Report
 
 Generated: ${new Date().toISOString()}
-Conversation: ${input.conversation_id}
+Session: ${input.session_id}
 Severity Threshold: ${securityConfig.severityThreshold}
 
 ## Summary
@@ -306,6 +263,8 @@ ${filteredFindings.length === 0 ? '✅ No security issues found!' : filteredFind
 ### ${i + 1}. ${finding.type}
 
 **Severity**: ${finding.severity.toUpperCase()}
+
+**File**: ${finding.location || 'unknown'}
 
 **Description**: ${finding.description}
 
@@ -341,14 +300,15 @@ console.error(`[Security Review] Report saved to ${reportPath}`);
 
 // Provide feedback to user
 if (criticalCount > 0 || highCount > 0) {
-  const output = {
-    followup_message: `🚨 Security scan found ${criticalCount} critical and ${highCount} high severity issues. See \`.cursor/security-report.md\` for details.`,
-  };
-  console.log(JSON.stringify(output));
+  const summary = filteredFindings
+    .filter(f => f.severity === "critical" || f.severity === "high")
+    .map(f => `- [${f.severity.toUpperCase()}] ${f.type} in ${f.location}: ${f.suggestion}`)
+    .join('\n');
+  blockOrNotify(input, `🚨 Security scan found ${criticalCount} critical and ${highCount} high severity issues. Review and fix them (or confirm they are false positives). Full report: ${reportPath}\n\n${summary}`);
 } else if (filteredFindings.length > 0) {
   console.error(`[Security Review] ⚠️ Found ${filteredFindings.length} security finding(s). Report saved.`);
-  console.log(JSON.stringify({}));
+  done();
 } else {
   console.error("[Security Review] ✓ No security issues found");
-  console.log(JSON.stringify({}));
+  done();
 }

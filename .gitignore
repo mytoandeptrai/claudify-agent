@@ -5,3 +5,10 @@ dist
 *.log
 .DS_Store
 Thumbs.db
+
+# Claudify hook runtime output
+.claude/plan-metrics.json
+.claude/weekly-learning-report.md
+.claude/lint-report.md
+.claude/security-report.md
+.claude/auto-validation-report.md

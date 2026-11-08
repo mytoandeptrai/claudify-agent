@@ -11,10 +11,9 @@
 ## Configuration
 
 ```yaml
-Task:
-  subagent_type: "explore"
-  model: "fast"  # ALWAYS for exploration
-  readonly: true
+Agent:
+  subagent_type: "Explore"
+  model: "haiku"  # ALWAYS for exploration
   run_in_background: true
   timeout: 120s
 ```
@@ -22,9 +21,9 @@ Task:
 ## Rules
 
 1. Default to 2-3 subagents, scale to 4 for complex tasks
-2. ALWAYS use `model="fast"` (90% of cases)
+2. ALWAYS use `model="haiku"` (90% of cases)
 3. Consolidate findings before planning
-4. See `.cursor/skills/parallel-exploration/SKILL.md` for patterns
+4. See `.claude/skills/parallel-exploration/SKILL.md` for patterns
 
 ## Anti-Patterns
 
