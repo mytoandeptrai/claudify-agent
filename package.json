@@ -16,6 +16,7 @@
     "CLAUDE.md",
     ".claude",
     "bin",
+    "templates",
     "README.md",
     "package.json"
   ],

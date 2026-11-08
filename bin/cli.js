@@ -41,6 +41,15 @@ if (command === 'init') {
       console.log(`  ⚠️  Kept your existing .claude/settings.json — merge the "hooks" block from ${settingsSrc} manually.`);
     }
 
+    // 3. Scaffold spec/ for the feature workflow (never overwrite an existing config)
+    const specConfig = join(targetDir, 'spec', 'config.md');
+    if (existsSync(specConfig)) {
+      console.log('  ⚠️  Kept your existing spec/config.md');
+    } else {
+      await cp(join(packageRoot, 'templates', 'spec', 'config.md'), specConfig);
+      console.log('  ✅ Created spec/config.md (fill in context & invariants, then use /spec-new)');
+    }
+
     console.log('\n🎉 Successfully initialized Claudify!');
     console.log('👉 Next Steps:');
     console.log('   - Review CLAUDE.md in your project root.');

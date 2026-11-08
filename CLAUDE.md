@@ -20,6 +20,11 @@
   - Validation steps: `.claude/rules/plan-mode-validation.md`
   - Plan structure guide: `.claude/rules/plan-mode-structure.md`
 
+## 2b. 📐 Spec Workflow (features only, opt-in by command)
+- `/spec-new` → `/spec-apply` → `/spec-archive`. Specs live in `spec/` (config, changes, specs backbone).
+- Bugs and small tasks: no spec, work directly.
+- After the user corrects a mistake, suggest `/learn` so it never repeats.
+
 ## 3. 🧪 Zero-Token Local Verification Loop
 After modifying code, execute local verification based on project stack:
 - **Node/TS/NestJS:** `npm run lint:fix && npm run typecheck`
