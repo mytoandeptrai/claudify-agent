@@ -22,12 +22,14 @@
 
 ## 3. 🧪 Zero-Token Local Verification Loop
 After modifying code, execute local verification based on project stack:
-- **Node/TS:** `npm run lint:fix && npm run typecheck`
-- **Go Backend:** `go vet ./... && go test ./...`
-- **Solidity (SMC):** `forge test` hoặc `npx hardhat test`
+- **Node/TS/NestJS:** `npm run lint:fix && npm run typecheck`
+- **Go Backend:** `go vet ./... && go test -race ./...`
+- **Solidity (SMC):** `forge test -vvv` hoặc `npx hardhat test`
 - Core standards: @.claude/rules/general.md & @.claude/rules/security-critical.md
 
 ## 4. 📚 On-Demand Skills Index (Load ONLY When Tech Is Used)
+- **Backend Concurrency & Locking:** @.claude/skills/backend-concurrency/SKILL.md
+- **NestJS Enterprise:** @.claude/skills/nestjs-guide/SKILL.md
 - **Golang Backend:** @.claude/skills/golang-guide/SKILL.md
 - **Solidity (Smart Contracts):** @.claude/skills/solidity-guide/SKILL.md
 - **Next.js:** @.claude/skills/nextjs-guide/SKILL.md
@@ -35,7 +37,6 @@ After modifying code, execute local verification based on project stack:
 - **Python:** @.claude/skills/python-guide/SKILL.md
 - **Vite:** @.claude/skills/vite-guide/SKILL.md
 - **Electron:** @.claude/skills/electron-guide/SKILL.md
-- **Tauri:** @.claude/skills/tauri-guide/SKILL.md
 - **MCP Mastery:** @.claude/skills/mcp-mastery/SKILL.md
 - **Tool Selection:** @.claude/skills/tool-selection/SKILL.md
 - **Debug Optimizer:** @.claude/skills/debug-optimizer/SKILL.md
