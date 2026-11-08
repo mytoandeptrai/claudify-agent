@@ -22,6 +22,7 @@ Never invent business rules (money, limits, refunds, permissions, status transit
 ## 2. 📋 Plan First Protocol (Anti-Drift)
 - For tasks touching **>= 2 files** or core architecture:
   - Generate a concise Plan before modifying files.
+  - Inside `/spec-apply`, the approved spec Tasks are the plan; do not write another one.
   - Research protocol: `.claude/rules/plan-mode-research.md`
   - Execution checklist: `.claude/rules/plan-mode-execution.md`
   - Validation steps: `.claude/rules/plan-mode-validation.md`
