@@ -6,45 +6,72 @@ Inspired by research-backed agent instruction patterns, **Claudify** acts as the
 
 ---
 
-## 🚀 Key Advantages
+## 📖 Hướng Dẫn Sử Dụng Chi Tiết (How to Use)
 
-- **🛡️ Token Snowball Prevention:** Eliminates conversational fluff and enforces strict sub-20 line rules. Prevents Claude from blindly hoovering up entire directory trees.
-- **📋 Plan-First Protocol:** Automatically obligates Claude to output an explicit implementation plan before touching two or more files.
-- **⚡ Zero-Token Local Verification:** Offloads formatting, ESLint fixes, and type checks to local scripts rather than burning hundreds of thousands of tokens across LLM feedback loops.
-- **📚 On-Demand Skills Directory:** Structured knowledge modules for Next.js, React, Root Cause Debugging, and OWASP Top 10 Security.
-- **🧩 MCP Native:** Built from the ground up to pair with Anthropic's Model Context Protocol (MCP) servers.
+Có **3 cách dùng** tùy thuộc vào môi trường bạn sử dụng với Claude:
 
 ---
 
-## 📦 Quick Start
+### Cách 1: Dùng với Claude Code CLI (Khuyên Dùng Nhất 🚀)
 
-### 1. Initialize in Any Project
-You can bootstrap Claudify directly into any existing repository or new project:
+**Claude Code** là công cụ dòng lệnh (CLI agent) chính thức của Anthropic, có khả năng tự động đọc file, gọi terminal và tự sửa code.
 
+#### 1. Áp dụng Claudify vào dự án của bạn:
+Chỉ cần copy file `CLAUDE.md` và thư mục `.claude/` vào thư mục gốc dự án của bạn:
 ```bash
-# Clone and link, or run via npx:
-npx claudify init
+# Cách A: Dùng Git (nếu chưa publish npm)
+git clone https://github.com/mytoandeptrai/claudify.git temp-claudify
+cp temp-claudify/CLAUDE.md ./
+cp -r temp-claudify/.claude ./
+rm -rf temp-claudify
+
+# Hoặc Cách B: Chạy CLI trực tiếp
+npx github:mytoandeptrai/claudify init
 ```
 
-This installs:
-- `CLAUDE.md`: The central steering file auto-loaded by Claude Code.
-- `.claude/skills/`: Tech-specific best practices (Next.js, React, Security, Debugging).
-- `.claude/scripts/`: Local verification pipeline (`auto-validate.js`, `security-scan.js`).
+#### 2. Khởi động Claude Code trong dự án:
+Mở terminal tại thư mục dự án và gõ:
+```bash
+claude
+```
+👉 **Điều gì sẽ xảy ra?**
+- Claude Code sẽ **tự động phát hiện và nạp file `CLAUDE.md`**.
+- Bạn không cần cấu hình thêm gì cả. Toàn bộ cơ chế chặn tràn token, ép Plan Mode trước khi sửa nhiều file, và tự động gọi ESLint local sẽ hoạt động ngầm 100%.
 
-### 2. Available Local Scripts
-Add these to your `package.json` for deterministic agent verification:
+---
+
+### Cách 2: Dùng với Claude Desktop (Giao diện App trên máy tính)
+
+Nếu bạn dùng ứng dụng **Claude Desktop** kèm tính năng Projects:
+
+1. Mở **Claude Desktop** $\rightarrow$ Tạo một **Project** mới trỏ vào dự án của bạn.
+2. Tại mục **Project Knowledge / Instructions**:
+   - Copy toàn bộ nội dung trong file [CLAUDE.md](CLAUDE.md) dán vào ô **Custom Instructions**.
+   - Thêm thư mục `.claude/` vào Project Files để Claude có thể tra cứu các Skills (`nextjs-guide`, `react-guide`, `mcp-mastery`...) khi cần.
+
+---
+
+### Cách 3: Kích hoạt hệ thống Tự Động Kiểm Tra (Zero-Token Verification)
+
+Để tận dụng tối đa các script tự sửa lỗi code không tốn token của Claudify:
+
+Thêm các script này vào `package.json` của dự án bạn:
 ```json
 {
   "scripts": {
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "validate": "node .claude/scripts/auto-validate.js",
     "security": "node .claude/scripts/security-scan.js"
   }
 }
 ```
 
+Mỗi khi Claude hoàn thành việc sửa code, nó sẽ tự động chạy `npm run validate` để đảm bảo không có lỗi type hay cú pháp trước khi thông báo cho bạn.
+
 ---
 
-## 🧠 Architecture & How It Works
+## 🧠 Cơ Chế Hoạt Động (Architecture)
 
 ```mermaid
 graph TD
@@ -65,14 +92,22 @@ graph TD
 
 ---
 
-## 🛠️ Included Skills
+## 🛠️ Kho Kỹ Năng Đầy Đủ (Included 12 Skills)
 
-| Skill File | Description |
-| :--- | :--- |
-| [`.claude/skills/nextjs.md`](.claude/skills/nextjs.md) | App Router, React Server Components (RSC), and Server Actions. |
-| [`.claude/skills/react.md`](.claude/skills/react.md) | Single Source of Truth state patterns, memoization guidelines. |
-| [`.claude/skills/security.md`](.claude/skills/security.md) | OWASP Top 10, secret leak defense, and input sanitization. |
-| [`.claude/skills/debug-optimizer.md`](.claude/skills/debug-optimizer.md) | 4-step systematic root-cause debugging protocol. |
+Các kỹ năng được lưu trữ theo dạng modular trong `.claude/skills/` và chỉ được nạp khi có yêu cầu:
+
+| Skill | Đường dẫn | Mô tả chi tiết |
+| :--- | :--- | :--- |
+| **Next.js Guide** | `.claude/skills/nextjs-guide/SKILL.md` | Chuẩn App Router, Server Components & Server Actions. |
+| **React Guide** | `.claude/skills/react-guide/SKILL.md` | Single Source of Truth, tối ưu Render & Custom Hooks. |
+| **Python Guide** | `.claude/skills/python-guide/SKILL.md` | Cấu trúc FastAPI, Django, Type hints & Pydantic. |
+| **MCP Mastery** | `.claude/skills/mcp-mastery/SKILL.md` | Hướng dẫn kết nối và gọi các Model Context Protocol servers. |
+| **Debug Optimizer** | `.claude/skills/debug-optimizer/SKILL.md` | Quy trình tìm nguyên nhân gốc rễ (Root Cause) 4 bước. |
+| **Tool Selection** | `.claude/skills/tool-selection/SKILL.md` | Chiến lược chọn đúng tool nhằm giảm thiểu số lần gọi API. |
+| **Plan Mastery** | `.claude/skills/plan-mode-mastery/SKILL.md` | Kỹ năng lập kế hoạch có hệ thống trước khi code. |
+| **Vite Guide** | `.claude/skills/vite-guide/SKILL.md` | Cấu hình bundling SPA tối ưu hiệu năng. |
+| **Electron & Tauri**| `.claude/skills/electron-guide/` & `tauri-guide/` | Quy chuẩn phát triển Desktop App bảo mật cao. |
+| **Learning Loop** | `.claude/skills/learning-loop/SKILL.md` | Tự động rút kinh nghiệm sau các lần fix lỗi. |
 
 ---
 
