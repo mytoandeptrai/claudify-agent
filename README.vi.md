@@ -39,7 +39,7 @@ Lệnh này sẽ tự động thiết lập:
 - `spec/config.md`: Quy tắc viết spec cho feature.
 - `.claude/commands/`: Slash command cho workflow spec, backbone và tự học từ lỗi.
 - `.claude/rules/`: 13 quy tắc phân tầng kiểm soát quá trình lập plan, thực thi và bảo mật.
-- `.claude/skills/`: 12 cẩm nang chuyên sâu theo từng công nghệ (Golang, NestJS, Concurrency, Solidity, Next.js...).
+- `.claude/skills/`: 15 cẩm nang chuyên sâu theo từng công nghệ (Golang, NestJS, Concurrency, Solidity, Next.js...).
 - `.claude/scripts/`: Bộ công cụ tự động kiểm tra code đa ngôn ngữ (`auto-validate.js`, `security-scan.js`).
 
 ---
@@ -164,7 +164,7 @@ graph TD
 
 ---
 
-## 🛠️ Danh Mục 12 Kỹ Năng Đính Kèm
+## 🛠️ Danh Mục 15 Kỹ Năng Đính Kèm
 
 | Kỹ Năng | Đường Dẫn | Trọng Tâm Giải Quyết |
 | :--- | :--- | :--- |
@@ -181,6 +181,8 @@ graph TD
 | **Tool Selection** | `.claude/skills/tool-selection/SKILL.md` | Chiến lược chọn đúng tool nhằm giảm thiểu số lần gọi API. |
 | **Plan Mastery** | `.claude/skills/plan-mode-mastery/SKILL.md` | Lập kế hoạch bài bản trước khi bắt đầu sinh code. |
 | **Vite Guide** | `.claude/skills/vite-guide/SKILL.md` | Cấu hình bundling SPA tối ưu hiệu năng. |
+| **Parallel Exploration** | `.claude/skills/parallel-exploration/SKILL.md` | Chạy 2-4 subagent Explore song song (chỉ đọc) để khảo sát rộng. |
+| **Learning Loop** | `.claude/skills/learning-loop/SKILL.md` | Phát hiện anti-pattern từ plan metrics và đề xuất cập nhật rule. |
 
 ---
 

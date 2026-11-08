@@ -39,7 +39,7 @@ This bootstraps:
 - `spec/config.md`: Rules for writing feature specs.
 - `.claude/commands/`: Slash commands for the spec, backbone and learning workflow.
 - `.claude/rules/`: 13 context-tiered rules governing planning, execution, and security.
-- `.claude/skills/`: 12 on-demand domain skills (Golang, NestJS, Concurrency, Solidity, Next.js, etc.).
+- `.claude/skills/`: 15 on-demand domain skills (Golang, NestJS, Concurrency, Solidity, Next.js, etc.).
 - `.claude/scripts/`: Local multi-language verification suite (`auto-validate.js`, `security-scan.js`).
 
 ---
@@ -163,7 +163,7 @@ graph TD
 
 ---
 
-## 🛠️ Included 12 Production Skills
+## 🛠️ Included 15 Production Skills
 
 | Skill | Path | Focus Area |
 | :--- | :--- | :--- |
@@ -180,6 +180,8 @@ graph TD
 | **Tool Selection** | `.claude/skills/tool-selection/SKILL.md` | Decision matrix to minimize excessive LLM tool calls. |
 | **Plan Mastery** | `.claude/skills/plan-mode-mastery/SKILL.md` | Systematic research and execution planning before code generation. |
 | **Vite Guide** | `.claude/skills/vite-guide/SKILL.md` | Modern SPA build optimization and bundling practices. |
+| **Parallel Exploration** | `.claude/skills/parallel-exploration/SKILL.md` | 2-4 parallel read-only Explore subagents for broad discovery. |
+| **Learning Loop** | `.claude/skills/learning-loop/SKILL.md` | Detect anti-patterns from plan metrics and suggest rule updates. |
 
 ---
 
