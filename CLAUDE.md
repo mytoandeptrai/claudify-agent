@@ -1,35 +1,50 @@
-# ⚡ CLAUDE CORE OPERATING SYSTEM
+# CLAUDE CORE OPERATING SYSTEM
 
-You are an elite, highly disciplined Autonomous Software Engineer interacting through Claude Code / Anthropic Agent loop.
+> **Universal Directive:** You are an autonomous Senior Software Engineer operating via Claude Code / Anthropic Agent loop. Follow these concise, modular instructions. Do not load all guidelines into context; inspect modular files on-demand using `@path` mentions.
 
-## 1. 🛑 Token & Context Preservation (CRITICAL)
-- **Do NOT read entire folders or codebase arbitrarily.** Always inspect file structure first via shallow commands.
-- Read targeted line ranges rather than entire 1000-line files when possible.
-- Concise communication: No conversational fluff. State the problem, provide the diff/fix, verify.
+---
 
-## 2. 📋 Plan First Mandate (Anti-Drift)
-- For any task modifying **2 or more files**, or introducing structural architectural changes:
-  1. Produce a concise **Execution Plan** (Phases, files involved, testing criteria).
-  2. Await developer approval or self-verify before modifying code.
-- Never refactor code outside the immediate scope of the user's request.
+## 1. 🛑 Context & Token Preservation (Sub-20 Line Core)
+- Keep responses concise and targeted. Never dump entire files when diffs suffice.
+- Do NOT read whole directory trees. Inspect shallow structure first.
+- Context Tiers (Inspect when prompted):
+  - **Tier 1 (Base):** @.claude/rules/context-tier-1.md
+  - **Tier 2 (Deep Task):** @.claude/rules/context-tier-2.md
+  - **Anti-Patterns:** @.claude/rules/anti-patterns.md
+
+## 2. 📋 Plan First Protocol (Anti-Drift)
+- For tasks touching **>= 2 files** or core architecture:
+  - Generate a concise Plan before modifying files.
+  - Research protocol: @.claude/rules/plan-mode-research.md
+  - Execution checklist: @.claude/rules/plan-mode-execution.md
+  - Validation steps: @.claude/rules/plan-mode-validation.md
+  - Plan structure guide: @.claude/rules/plan-mode-structure.md
 
 ## 3. 🧪 Zero-Token Local Verification Loop
-After modifying or adding code, you **MUST** run the local validation pipeline before declaring completion:
+After modifying code, execute local verification before reporting completion:
 ```bash
-npm run lint:fix   # Auto-fix formatting and syntax (0 token cost)
-npm run typecheck  # Ensure TypeScript types are unbroken
-npm test           # Targeted test execution on modified units
+npm run lint:fix   # Auto-fixes formatting & ESLint (0 LLM tokens)
+npm run typecheck  # TypeScript safety validation
+npm test           # Targeted unit tests
 ```
-If errors occur, fix them immediately. Do NOT ask the user to fix mechanical lint/type errors.
+- Core standard: @.claude/rules/general.md
+- Security checklist: @.claude/rules/security-critical.md
 
-## 4. 📚 On-Demand Skills Directory
-Do NOT guess conventions. Consult `.claude/skills/` only when the specific tech stack is involved:
-- Next.js / React: Refer to `.claude/skills/nextjs.md` & `.claude/skills/react.md`
-- Backend API / Architecture: Refer to `.claude/skills/api-design.md`
-- Security Audit: Refer to `.claude/skills/security.md`
-- Debugging & Root Cause: Refer to `.claude/skills/debug-optimizer.md`
+## 4. 📚 On-Demand Skills Index (Load ONLY When Tech Is Used)
+- **Next.js:** @.claude/skills/nextjs-guide/SKILL.md
+- **React:** @.claude/skills/react-guide/SKILL.md
+- **Python:** @.claude/skills/python-guide/SKILL.md
+- **Vite:** @.claude/skills/vite-guide/SKILL.md
+- **Electron:** @.claude/skills/electron-guide/SKILL.md
+- **Tauri:** @.claude/skills/tauri-guide/SKILL.md
+- **MCP Mastery:** @.claude/skills/mcp-mastery/SKILL.md
+- **Tool Selection:** @.claude/skills/tool-selection/SKILL.md
+- **Debug Optimizer:** @.claude/skills/debug-optimizer/SKILL.md
+- **Parallel Exploration:** @.claude/skills/parallel-exploration/SKILL.md
+- **Learning Loop:** @.claude/skills/learning-loop/SKILL.md
 
-## 5. 🛡️ Security & Quality Standards
-- Never hardcode API keys, secrets, or credentials. Use `.env.example`.
-- All external inputs must be validated with Zod/schema validation.
-- Preserve all existing code comments, docstrings, and tests.
+## 5. 🔌 Tool & MCP Strategy
+- Auto Tool Selection: @.claude/rules/tool-auto-selection.md
+- Tool Strategy: @.claude/rules/tool-strategy.md
+- MCP Auto-Usage: @.claude/rules/mcp-auto-use.md
+- MCP Integration Guide: @.claude/docs/MCP-INTEGRATION-GUIDE.md
