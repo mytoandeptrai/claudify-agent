@@ -4,6 +4,12 @@
 
 ---
 
+## 0. 🗺️ Project Backbone (always loaded)
+@BACKBONE.md
+
+If it still holds `<placeholders>`, suggest `/backbone-init`. Follow its Invariants on every task.
+If you finish work without a spec that changes structure, docs, commands or capabilities, suggest `/backbone-sync`.
+
 ## 1. 🛑 Context & Token Preservation (Sub-20 Line Core)
 - Keep responses concise and targeted. Never dump entire files when diffs suffice.
 - Do NOT read whole directory trees. Inspect shallow structure first.

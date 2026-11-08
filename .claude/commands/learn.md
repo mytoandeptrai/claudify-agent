@@ -9,7 +9,8 @@ If the argument is empty, infer the lesson from the correction I made earlier in
 
 1. State the lesson as one imperative line: what to do (or never do) and when. Add a one-line why if not obvious.
 2. Pick where it belongs, most specific first:
-   - business invariant of this project → Invariants in `spec/config.md`;
+   - business invariant or project-wide fact (e.g. a doc is outdated) → Invariants or Docs index in `BACKBONE.md`;
+   - how specs should be written → `spec/config.md`;
    - a technology or practice covered by a skill → that `.claude/skills/<name>/SKILL.md`, under a `## Lessons` section;
    - general working style → `.claude/rules/lessons.md` (always loaded, keep it under 30 lines).
 3. Check the target for an existing rule that covers it; if so, sharpen that line instead of adding a duplicate.

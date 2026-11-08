@@ -41,13 +41,19 @@ if (command === 'init') {
       console.log(`  ⚠️  Kept your existing .claude/settings.json — merge the "hooks" block from ${settingsSrc} manually.`);
     }
 
-    // 3. Scaffold spec/ for the feature workflow (never overwrite an existing config)
-    const specConfig = join(targetDir, 'spec', 'config.md');
-    if (existsSync(specConfig)) {
-      console.log('  ⚠️  Kept your existing spec/config.md');
-    } else {
-      await cp(join(packageRoot, 'templates', 'spec', 'config.md'), specConfig);
-      console.log('  ✅ Created spec/config.md (fill in context & invariants, then use /spec-new)');
+    // 3. Scaffold BACKBONE.md and spec/ (never overwrite existing files)
+    const templates = [
+      ['BACKBONE.md', 'project map loaded every session; run /backbone-init to fill it'],
+      ['spec/config.md', 'rules for /spec-new'],
+    ];
+    for (const [file, purpose] of templates) {
+      const dest = join(targetDir, file);
+      if (existsSync(dest)) {
+        console.log(`  ⚠️  Kept your existing ${file}`);
+      } else {
+        await cp(join(packageRoot, 'templates', file), dest);
+        console.log(`  ✅ Created ${file} (${purpose})`);
+      }
     }
 
     console.log('\n🎉 Successfully initialized Claudify!');

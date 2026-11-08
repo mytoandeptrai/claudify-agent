@@ -11,4 +11,5 @@ Archive spec change: $ARGUMENTS
    - ADDED → append. MODIFIED → replace the requirement of the same name in full. REMOVED → delete it.
    - If a MODIFIED/REMOVED name does not exist in the backbone, stop and ask instead of guessing.
 3. Move the change file to `spec/changes/archive/YYYY-MM-DD-<change-name>.md`.
-4. Show me the diff of `spec/specs/` in a short summary.
+4. Update `BACKBONE.md`: remove the change from "Open changes"; add or update the one-line entry under "Capabilities" for each capability touched.
+5. Show me the diff of `spec/specs/` in a short summary.

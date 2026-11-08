@@ -5,7 +5,7 @@ argument-hint: <change-name> <what the feature should do>
 
 Create a spec change for: $ARGUMENTS
 
-1. Read `spec/config.md` (stop and offer to create it from the template if missing). Read only the `spec/specs/*.md` capabilities this feature touches, and only the source-of-truth sections it needs.
+1. `BACKBONE.md` is already in context. Read `spec/config.md`, then only the `spec/specs/*.md` capabilities this feature touches and only the doc sections from the Docs index it needs.
 2. Ask me (one batched question) anything that changes scope. Do not guess scope.
 3. Write `spec/changes/<change-name>.md` with exactly these sections, following the rules in `spec/config.md`:
 
@@ -36,4 +36,5 @@ Status: draft | Depends on: <change or none>
 
 4. Keep the whole file under ~800 words, plus ~300 per extra capability. No restating config, docs or code; link them.
    If it still does not fit (e.g. more than 4 capabilities), propose splitting into smaller changes with `Depends on:` instead of one giant spec.
-5. Do not write code. Finish by showing the task list and asking me to approve before `/spec-apply`.
+5. Add the change as one line under "Open changes" in `BACKBONE.md`.
+6. Do not write code. Finish by showing the task list and asking me to approve before `/spec-apply`.
