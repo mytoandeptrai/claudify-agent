@@ -33,9 +33,9 @@ npm run test:coverage     # With coverage report
 npm run test -- path/to   # Specific file
 
 ## Test Examples
-- Unit test: @__tests__/auth.test.ts
-- Integration: @__tests__/api/users.test.ts
-- E2E: @e2e/checkout.spec.ts
+- Unit test: `__tests__/auth.test.ts`
+- Integration: `__tests__/api/users.test.ts`
+- E2E: `e2e/checkout.spec.ts`
 ```
 
 ---
@@ -55,7 +55,7 @@ npm run test -- path/to   # Specific file
 - Export GET, POST, PUT, DELETE handlers
 
 ## Authentication
-- Validate JWT with @src/auth/validateToken.ts
+- Validate JWT with `src/auth/validateToken.ts`
 - Extract user from token claims
 - Return 401 for unauthorized, 403 for forbidden
 
@@ -78,9 +78,9 @@ try {
 ```
 
 ## API Examples
-- REST pattern: @app/api/users/route.ts
-- Error handling: @app/api/orders/route.ts
-- Validation: @src/validators/orderSchema.ts
+- REST pattern: `app/api/users/route.ts`
+- Error handling: `app/api/orders/route.ts`
+- Validation: `src/validators/orderSchema.ts`
 ```
 
 ---
@@ -124,9 +124,9 @@ export function Button({ variant = 'primary', children }: Props) {
 - Test on multiple screen sizes
 
 ## UI Examples
-- Button: @components/Button.tsx
-- Form: @components/forms/TextInput.tsx
-- Layout: @components/Layout.tsx
+- Button: `components/Button.tsx`
+- Form: `components/forms/TextInput.tsx`
+- Layout: `components/Layout.tsx`
 ```
 
 ---
@@ -152,9 +152,9 @@ export function Button({ variant = 'primary', children }: Props) {
 - Lighthouse Performance: >90
 
 ## Performance Examples
-- Memoization: @components/ExpensiveList.tsx
-- Code splitting: @app/dashboard/page.tsx
-- Caching: @lib/react-query.ts
+- Memoization: `components/ExpensiveList.tsx`
+- Code splitting: `app/dashboard/page.tsx`
+- Caching: `lib/react-query.ts`
 ```
 
 ---
@@ -179,9 +179,9 @@ export function Button({ variant = 'primary', children }: Props) {
 - Index frequently queried fields
 
 ## Database Examples
-- Schema: @prisma/schema.prisma
-- Query pattern: @src/db/queries/users.ts
-- Migration: @prisma/migrations/[latest]
+- Schema: `prisma/schema.prisma`
+- Query pattern: `src/db/queries/users.ts`
+- Migration: `prisma/migrations/[latest]`
 ```
 
 ---
@@ -212,9 +212,9 @@ export function Button({ variant = 'primary', children }: Props) {
 - Escape output to prevent XSS
 
 ## Security Examples
-- Auth middleware: @src/middleware/auth.ts
-- Password hashing: @src/lib/password.ts
-- Input validation: @src/validators/userSchema.ts
+- Auth middleware: `src/middleware/auth.ts`
+- Password hashing: `src/lib/password.ts`
+- Input validation: `src/validators/userSchema.ts`
 ```
 
 ---
@@ -240,9 +240,9 @@ export function Button({ variant = 'primary', children }: Props) {
 - Manual approval for production
 
 ## Deployment Examples
-- CI config: @.github/workflows/ci.yml
-- Build script: @scripts/build.ts
-- Deploy: @scripts/deploy.ts
+- CI config: `.github/workflows/ci.yml`
+- Build script: `scripts/build.ts`
+- Deploy: `scripts/deploy.ts`
 ```
 
 ---

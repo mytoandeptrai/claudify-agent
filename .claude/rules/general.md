@@ -22,4 +22,4 @@
 - [ ] Tests passing (auto-run)
 - [ ] Cost within budget (check `.claude/cost-dashboard.md`)
 
-**Note**: See @.claude/rules/ for task-specific rules. Anti-patterns: @.claude/rules/anti-patterns.md
+**Note**: See `.claude/rules/` for task-specific rules. Anti-patterns: `.claude/rules/anti-patterns.md`

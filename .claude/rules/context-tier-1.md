@@ -29,9 +29,9 @@ npm run typecheck  # After TypeScript changes
 ## Canonical Examples
 
 ```
-Component pattern: @components/Button.tsx
-API route pattern: @app/api/users/route.ts
-Test pattern: @__tests__/auth.test.ts
+Component pattern: `components/Button.tsx`
+API route pattern: `app/api/users/route.ts`
+Test pattern: `__tests__/auth.test.ts`
 ```
 
 ---

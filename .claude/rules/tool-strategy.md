@@ -19,4 +19,4 @@ Tier 4: Parallel subagents, Browser MCP
 - context7: Library documentation
 
 ## Pattern
-Follow tool selection examples in @.claude/skills/tool-selection/SKILL.md
+Follow tool selection examples in `.claude/skills/tool-selection/SKILL.md`

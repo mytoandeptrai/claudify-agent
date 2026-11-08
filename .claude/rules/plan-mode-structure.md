@@ -85,7 +85,7 @@ Add login button to header navigation following existing button patterns.
 
 ## Files to Modify
 - `components/Header.tsx` - Add login button to nav
-  - Pattern: Follow @components/Button.tsx
+  - Pattern: Follow `components/Button.tsx`
   - Tools: Edit for edit, Lint check for validation
 
 ## Implementation Steps
@@ -119,13 +119,13 @@ Create user dashboard with stats, activity feed, and settings panel.
 
 ## Files to Create
 - `app/dashboard/page.tsx` - Main dashboard page
-  - Pattern: Follow @app/profile/page.tsx
+  - Pattern: Follow `app/profile/page.tsx`
   - Tools: Write for new file
 - `components/dashboard/StatsCard.tsx` - Stats component
-  - Pattern: Follow @components/Card.tsx
+  - Pattern: Follow `components/Card.tsx`
   - Tools: Write for new file
 - `app/api/dashboard/stats/route.ts` - Stats API
-  - Pattern: Follow @app/api/users/route.ts
+  - Pattern: Follow `app/api/users/route.ts`
   - Tools: Write for new file
 
 ## Implementation Steps
