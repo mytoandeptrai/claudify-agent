@@ -20,8 +20,12 @@ jobs:
       id-token: write
 
     steps:
+      # Release the tip of main, not the triggering commit: runs are serialized,
+      # so this includes the previous run's version bump.
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,7 +55,12 @@ jobs:
         run: npm publish --access public
 
       - name: Push Version Commit & Tag
-        run: git push origin HEAD:main --follow-tags
+        # main may have moved while this run was publishing: rebase the bump on top
+        run: |
+          git pull --rebase origin main
+          git tag -f "${{ steps.version.outputs.tag }}"
+          git push origin HEAD:main
+          git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
