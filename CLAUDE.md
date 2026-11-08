@@ -9,6 +9,7 @@
 
 If it still holds `<placeholders>`, suggest `/backbone-init`. Follow its Invariants on every task.
 If you finish work without a spec that changes structure, docs, commands or capabilities, suggest `/backbone-sync`.
+Never invent business rules (money, limits, refunds, permissions, status transitions, legal): if no spec, invariant or doc states it, ask.
 
 ## 1. 🛑 Context & Token Preservation (Sub-20 Line Core)
 - Keep responses concise and targeted. Never dump entire files when diffs suffice.
