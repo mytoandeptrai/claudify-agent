@@ -7,8 +7,11 @@
 
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
-import { cp } from 'fs/promises';
+import { cp, readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
+
+const BLOCK_START = '<!-- claudify:start (managed by `npx claudify init`, edits inside are overwritten) -->';
+const BLOCK_END = '<!-- claudify:end -->';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,9 +27,24 @@ if (command === 'init') {
   console.log(`📦 Initializing Claudify in: ${targetDir}`);
 
   try {
-    // 1. Copy CLAUDE.md
-    await cp(join(packageRoot, 'CLAUDE.md'), join(targetDir, 'CLAUDE.md'));
-    console.log('  ✅ Created CLAUDE.md (Root agent instruction guidelines)');
+    // 1. CLAUDE.md: keep the project's own content, manage only the Claudify block
+    const claudeMd = join(targetDir, 'CLAUDE.md');
+    const block = `${BLOCK_START}\n${(await readFile(join(packageRoot, 'CLAUDE.md'), 'utf-8')).trim()}\n${BLOCK_END}\n`;
+    if (!existsSync(claudeMd)) {
+      await writeFile(claudeMd, block);
+      console.log('  ✅ Created CLAUDE.md (Root agent instruction guidelines)');
+    } else {
+      const current = await readFile(claudeMd, 'utf-8');
+      const start = current.indexOf(BLOCK_START);
+      const end = current.indexOf(BLOCK_END);
+      if (start !== -1 && end > start) {
+        await writeFile(claudeMd, current.slice(0, start) + block + current.slice(end + BLOCK_END.length).replace(/^\n/, ''));
+        console.log('  ✅ Updated the Claudify block in CLAUDE.md (your own content untouched)');
+      } else {
+        await writeFile(claudeMd, `${current.trimEnd()}\n\n${block}`);
+        console.log('  ✅ Appended the Claudify block to your existing CLAUDE.md');
+      }
+    }
 
     // 2. Copy .claude folder (never overwrite the project's own settings.json)
     const settingsSrc = join(packageRoot, '.claude', 'settings.json');
