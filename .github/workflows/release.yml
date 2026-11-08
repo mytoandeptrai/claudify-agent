@@ -1,9 +1,16 @@
 name: Release & Publish to NPM
 
+# Every push to main publishes a new patch version.
+# The version-bump commit is pushed with GITHUB_TOKEN, which does not trigger
+# another workflow run, so this cannot loop.
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -22,14 +29,32 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Install & Verify
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+
+      - name: Bump Patch Version
+        id: version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
+          echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Push Version Commit & Tag
+        run: git push origin HEAD:main --follow-tags
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
