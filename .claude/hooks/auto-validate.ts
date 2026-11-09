@@ -94,7 +94,9 @@ const TEST_FILE = /(\.(test|spec)\.[cm]?[jt]sx?$)|__tests__|_test\.go$|\.t\.sol$
 
 // Only validate turns in which Claude edited files
 const turn = loadCurrentTurn(input.transcript_path);
-const changedFiles = turn ? editedFiles(turn.toolUses) : [];
+// Docs, specs and claudify's own files are not project code: editing them never breaks lint/tests
+const NON_CODE = /(^|\/)(\.claude|spec|openspec|docs)\/|\.(md|mdx|txt|ya?ml)$/;
+const changedFiles = (turn ? editedFiles(turn.toolUses) : []).filter(f => !NON_CODE.test(f));
 
 if (changedFiles.length === 0) {
   console.error("[Auto-Validate] No code changes detected, skipping validation");
