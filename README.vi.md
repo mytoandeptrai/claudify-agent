@@ -44,6 +44,15 @@ Lệnh này sẽ tự động thiết lập:
 
 ---
 
+### Gỡ cài đặt
+
+```bash
+npx claudify-agent uninstall          # gỡ những gì init đã cài; giữ BACKBONE.md và spec/
+npx claudify-agent uninstall --all    # gỡ luôn BACKBONE.md và spec/
+```
+
+Chỉ xoá file do claudify cài, đoạn claudify trong `CLAUDE.md` và các hook của nó trong `.claude/settings.json`. Command, skill, setting của bạn được giữ nguyên. Thêm `--yes` để bỏ qua câu hỏi xác nhận. Cài lại bất cứ lúc nào bằng `npx claudify-agent@latest init`.
+
 ## 🚀 Hướng Dẫn Sử Dụng
 
 ### 1. Dùng với Claude Code CLI (Khuyên dùng nhất)

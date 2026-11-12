@@ -44,6 +44,15 @@ This bootstraps:
 
 ---
 
+### Uninstall
+
+```bash
+npx claudify-agent uninstall          # removes what init installed; keeps BACKBONE.md and spec/
+npx claudify-agent uninstall --all    # also removes BACKBONE.md and spec/
+```
+
+It only deletes files claudify shipped, the claudify block in `CLAUDE.md` and its hook entries in `.claude/settings.json`. Your own commands, skills and settings stay. Add `--yes` to skip the prompt. Re-install any time with `npx claudify-agent@latest init`.
+
 ## 🚀 How to Use
 
 ### 1. With Claude Code CLI (Recommended)
