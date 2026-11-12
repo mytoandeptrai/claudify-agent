@@ -34,7 +34,8 @@ Never invent business rules (money, limits, refunds, permissions, status transit
 - After the user corrects a mistake, suggest `/learn` so it never repeats.
 
 ## 3. 🧪 Zero-Token Local Verification Loop
-After modifying code, execute local verification based on project stack:
+When a task that changed code is otherwise done, run the `Verify` command from `BACKBONE.md` Commands once, at the end, never between edits. Fix failures and rerun; do not report done until it passes. Skip if only docs/specs changed. Inside `/spec-apply` the task DoD replaces this. No `Verify` line filled in → use the stack defaults below.
+Stack defaults:
 - **Node/TS/NestJS:** `npm run lint:fix && npm run typecheck`
 - **Go Backend:** `go vet ./... && go test -race ./...`
 - **Solidity (SMC):** `forge test -vvv` hoặc `npx hardhat test`
