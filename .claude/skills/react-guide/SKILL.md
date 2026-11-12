@@ -1,6 +1,6 @@
 ---
 name: react-guide
-description: Apply React best practices including modern patterns, hooks, TypeScript, performance optimization, and testing. Use when writing, reviewing, or refactoring React code.
+description: Apply React best practices including modern patterns, hooks, TypeScript, performance optimization, and testing, following a modules → containers → hooks → components frontend architecture. Use when writing, reviewing, or refactoring React code.
 ---
 
 # React Best Practices
@@ -9,12 +9,188 @@ description: Apply React best practices including modern patterns, hooks, TypeSc
 
 When working with React code, follow these core principles:
 
-1. **Modern Patterns**: Use hooks and function components (no class components)
-2. **TypeScript**: Add proper types, avoid `any`
-3. **Server Components**: Use RSC for data fetching when possible
-4. **Performance**: Prevent re-renders, code-split, optimize bundles
-5. **Testing**: Use React Testing Library with user-behavior queries
-6. **Accessibility**: Build accessible components by default
+1. **Architecture**: Split every feature into `modules/<feature>/{containers,hooks,components}` with strict suffixes (see "Frontend Architecture")
+2. **Modern Patterns**: Use hooks and function components (no class components, except error boundaries)
+3. **TypeScript**: Add proper types, avoid `any`
+4. **Server Components**: Use RSC for data fetching when possible *(Next.js projects only — in a client-side SPA such as Vite, fetch through hooks + a query library instead)*
+5. **Performance**: Prevent re-renders, code-split, optimize bundles
+6. **Testing**: Use React Testing Library with user-behavior queries
+7. **Accessibility**: Build accessible components by default
+
+---
+
+# Frontend Architecture (modules → containers → hooks → components)
+
+Apply this when the project has (or should have) `src/modules/`. The layering is the rule; the libraries below are the defaults it was written with: React 19, Vite, TanStack Router + Query + Table, react-hook-form + zod, i18next, shadcn/ui, Tailwind, Biome, Vitest. If the project uses others (React Router, SWR, ESLint, Jest...), keep the layering and use the project's own libraries and scripts. Names like `login`, `order`, `@/apis/<domain>` are examples, not requirements.
+
+## modules → containers → hooks → components
+
+Every feature/page lives in `src/modules/<feature>/` and is split into 3 layers with strict responsibilities:
+
+| Layer | Folder | Suffix | Responsibility |
+|---|---|---|---|
+| Container | `containers/<name>-container/` | `-container` | Wrapper/composer. Calls **one hook**, passes results to UI components, composes child containers/layout. No business logic inline. |
+| Hook | `hooks/` | `use-<name>-container.ts(x)` | **All logic**: queries/mutations, form (`useForm`), state, handlers, navigation, toasts, derived data. Returns a flat object for the container. |
+| Component | `components/<name>-ui/` | `-ui` | **Presentational only**: receives props, renders. No fetching, no mutations, no routing, no business decisions. |
+
+Data flow is one-way: `route → Container → useXxxContainer() → <XxxUi {...props} />`.
+
+### Folder layout
+
+```
+src/modules/<feature>/
+├── index.ts                         # export { default as XxxContainer } from './containers/xxx-container';
+├── containers/
+│   └── xxx-container/
+│       ├── index.ts                 # export { default } from './xxx-container';
+│       ├── xxx-container.tsx
+│       └── create-columns.tsx       # (optional) container-local helpers, e.g. table columns
+├── hooks/
+│   ├── index.ts                     # export * from './use-xxx-container'; export * from './schema';
+│   ├── use-xxx-container.ts
+│   └── schema.ts                    # zod schema + initial form data + FormData type
+└── components/
+    ├── index.ts                     # export { default as XxxFormUi } from './xxx-form-ui';
+    └── xxx-form-ui/
+        ├── index.ts                 # export { default } from './xxx-form-ui'; export * from './xxx-form-ui';
+        └── xxx-form-ui.tsx
+```
+
+Pages with several sub-flows nest them: `modules/auth/{login,register,forgot-password,...}/` each with its own `containers/ hooks/ components/ index.ts`.
+
+### Naming rules
+
+- Folder + file: kebab-case, suffix by role: `login-container`, `login-form-ui`, `login-header-ui`, `use-login-container.ts`.
+- Component identifiers: PascalCase with the same suffix: `LoginContainer`, `LoginFormUi`.
+- Hook: `use<Name>Container`, one hook per container, named after it (`OrderTableContainer` ↔ `useOrderListContainer` is acceptable when the hook serves the data concern; keep it obvious).
+- Schema: `schema.ts` or `<name>.schema.ts` in `hooks/`. Export `xxxSchema`, `initialXxxFormData`, `type XxxFormData`.
+- Components/containers use **default export** + `index.ts` re-export; hooks use **named export**.
+- Each folder has an `index.ts` barrel. Import siblings through the barrel (`'../../hooks'`, `'../../components'`), not deep paths.
+- Module `index.ts` exposes only the top-level container(s). Routes import from there: `import { LoginContainer } from '@/modules/auth/login'`.
+- Use the `@/` alias for anything outside the module; relative `../../` only for same-module layers.
+
+### Container — wrapper only
+
+```tsx
+// containers/login-container/login-container.tsx
+const LoginContainer = () => {
+  const { form, isLoading, onSubmit } = useLoginContainer();
+  return (
+    <Card className='w-full max-w-md gap-10'>
+      <LoginHeaderUi />
+      <CardContent>
+        <FormWrapper form={form} onSubmit={onSubmit}>
+          <LoginFormUi isLoading={isLoading} />
+        </FormWrapper>
+      </CardContent>
+    </Card>
+  );
+};
+export default LoginContainer;
+```
+
+- Compose layout (`PageContainer`, `Card`, `Dialog`, `DataTable`, `FormWrapper`) + child containers + `-ui` components.
+- A container may nest other containers (`OrdersContainer` → `OrderTableContainer` + `CreateOrderDialogContainer`).
+- A small container may hold light wiring (e.g. `OrderActionsContainer` binds a mutation to `OrderActionsUi`), but once it has form/state/navigation/multiple handlers, move it into `hooks/use-*-container.ts`.
+- Memoize derived objects passed to heavy children (`useMemo(() => createColumns({ t }), [t])`).
+
+### Hook — all logic
+
+```ts
+// hooks/use-login-container.ts
+export const useLoginContainer = () => {
+  const { t } = useTranslation('login-page');
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginFormSchema(t)),
+    defaultValues: initialFormData,
+    mode: 'onChange',
+  });
+  const loginMutation = useLoginMutation();
+  const isLoading = loginMutation.isPending;
+
+  const onSubmit = async (payload: LoginFormData) => {
+    if (isLoading) return;
+    const { data } = await loginMutation.mutateAsync(payload);
+    // ...success handling, toast, navigation
+  };
+
+  return { t, form, isLoading, onSubmit };
+};
+```
+
+- Owns: API hooks from `@/apis/<domain>`, `useForm`, `useState`, router (`Route.useSearch/useNavigate/useParams`), stores, contexts, toasts, `queryClient.invalidateQueries`.
+- Handlers are named `onXxx` (`onSubmit`, `onOpenChange`, `onPaginationChange`, `onSortingChange`, `onCopy`, `onCancel`).
+- Return a **flat** object with only what the container needs (`t`, flags like `isLoading`, handlers, `form`, derived `tableData`).
+- Zod schemas that need i18n are factories: `loginFormSchema(t)`; always `.trim()` / reject whitespace-only for text/email fields.
+- Hooks never return JSX. (`.tsx` extension only when the file genuinely needs JSX, e.g. a toast with `<ToastLink>`.)
+- Effects: only for syncing with external systems (see "Common Pitfalls").
+
+### Component (`-ui`) — props in, JSX out
+
+```tsx
+type OrderActionsUiProps = {
+  order: IOrder;
+  isCancelling?: boolean;
+  onCopy: () => void;
+  onCancel: () => void;
+};
+
+const OrderActionsUi = ({ order, isCancelling = false, onCopy, onCancel }: OrderActionsUiProps) => { ... };
+export default OrderActionsUi;
+```
+
+- Props type named `<Component>Props`, declared with `type` right above the component; optional flags get defaults (`isLoading = false`).
+- Event props are `onXxx` callbacks supplied by the container; the UI never calls an API itself.
+- Allowed inside a `-ui` component (existing convention): `useTranslation` for static labels, `useFormContext` to bind fields under `FormWrapper`, trivial presentational conditions, local UI-only state (e.g. popover open).
+- **Not allowed**: `useQuery`/`useMutation`, `useNavigate`/`Route.use*`, store access, `queryClient`, toasts, schema building, data transformation beyond display.
+- Form data type comes from the module: `import type { LoginFormData } from '../../hooks'`.
+- Prefer `Show`, `HStack`, `VStack` from `@/components/utilities` over ad-hoc conditionals/raw flex wrappers where it improves readability.
+
+### Where does it go?
+
+| Code | Place |
+|---|---|
+| Route component, page wrapper, dialog shell, table shell | `containers/` |
+| `useForm`, mutation, search params, pagination handlers | `hooks/` |
+| zod schema, initial form values | `hooks/schema.ts` |
+| Form fields layout, header, buttons, modal body | `components/*-ui` |
+| Table `createColumns` | next to the table container |
+| Reusable across modules (no domain knowledge) | `src/components/**` (ui, form-fields, utilities, containers, layouts) |
+| Generic hook (`use-copy`, `use-debounce`) | `src/hooks/` |
+| API request/query/key/types | `src/apis/<domain>/{requests,queries,keys,types,index}.ts` |
+| Global state | `src/stores/`, `src/contexts/`, `src/integrations/` |
+
+### Routes
+
+Routes are thin: `src/routes/**` only wires path, `validateSearch` (zod), and `component: XxxContainer` imported from the module barrel. No logic in route files.
+
+```tsx
+export const Route = createFileRoute('/(auth)/login')({
+  validateSearch: (search) => loginSearchSchema.parse(search),
+  component: LoginContainer,
+});
+```
+
+### New feature checklist
+
+1. Create `modules/<feature>/` with `containers/`, `hooks/`, `components/`, `index.ts`.
+2. Add API layer under `src/apis/<domain>` if needed (requests → queries/mutations → keys → types → index).
+3. Write schema + `use-<name>-container` hook.
+4. Write `-ui` components (props only), then the `-container` that wires hook → UI.
+5. Add barrels (`index.ts`) at every level; export the container from the module `index.ts`.
+6. Register the route to the container; add i18n keys to the feature namespace (`useTranslation('<feature>-page')`, shared strings in `common`).
+7. Run `npm run check`, `npm run build`, `npm run test`.
+
+### Project conventions
+
+- **UI/styling**: colors only via design tokens in `src/styles.css`; reuse `src/components/ui` (shadcn) before building new primitives; pages are full-width within the layout.
+- **i18n**: every user-facing string via `t()`; namespace per feature, shared strings in `common`. No literal text in JSX.
+- **Forms**: `react-hook-form` + `zodResolver`, `mode: 'onChange'`, fields from `@/components/form-fields/*` inside `FormWrapper`.
+- **Server state**: TanStack Query via `@/apis/*`; after a mutation `invalidateQueries({ queryKey: [KEYS.X] })`. Don't copy server data into `useState`.
+- **URL state**: table filters/pagination/sort live in router search params, changed with `navigate({ search, replace: true })`.
+- **Style**: single quotes (JSX too), arrow-function components, Biome formatting.
+
+---
 
 ## Component Architecture
 
@@ -51,6 +227,8 @@ export function UserCard({ userId, showDetails = false }: UserCardProps) {
   );
 }
 ```
+
+> Under this architecture the logic is split: the fetching goes into `use-user-card-container.ts` (via `@/apis/*` + TanStack Query rather than a manual `useEffect`), and `UserCardUi` only renders props.
 
 ### Custom Hooks for Reusable Logic
 
@@ -111,6 +289,8 @@ function UserProfile({ userId }: { userId: string }) {
 ```
 
 ## React Server Components (RSC)
+
+> Reference only: applies to Next.js. In a client-side SPA (e.g. Vite) there is no `'use client'`; data fetching goes through hooks + a query library.
 
 ### Server Component Pattern
 
@@ -226,6 +406,11 @@ function ShoppingCart({ items }: { items: CartItem[] }) {
 }
 ```
 
+Project notes:
+- `useMemo` for table columns and derived table data (see the table container and its list hook).
+- Use `placeholderData` (keep previous data) for filter/pagination to avoid flicker.
+- Known React Compiler incompatibilities: TanStack Table `useReactTable`; don't assume the compiler memoizes it.
+
 ### Code Splitting
 
 ```tsx
@@ -246,6 +431,8 @@ function App() {
   );
 }
 ```
+
+> Here route-level splitting is handled by TanStack Router; use `lazy` + `Suspense` for heavy, rarely-used widgets.
 
 ## TypeScript Best Practices
 
@@ -307,7 +494,11 @@ export function Form({ onSubmit }: FormProps) {
 }
 ```
 
+> Project rules: use `import type` for types; API types come from `@/apis/<domain>`; prefer `type XxxUiProps = {...}` for props; real forms use RHF + zod (`FormWrapper`, `@/components/form-fields/*`) instead of manual `FormData`.
+
 ## Testing Patterns
+
+Vitest + React Testing Library. Test each layer in isolation: hook (`renderHook`), `-ui` component (render with props, assert callbacks), container (wiring, mocked providers), schema (pure unit tests).
 
 ### React Testing Library
 
@@ -465,6 +656,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 }
 ```
 
+> In this repo prefer the shadcn/Radix `Dialog` (`@/components/ui/dialog`), which already handles focus trap, Escape and `aria-*`; the hand-rolled version above is the reference for what it must provide.
+
 ### Form Accessibility
 
 ```tsx
@@ -504,6 +697,8 @@ export function InputField({
   );
 }
 ```
+
+> Real fields come from `@/components/form-fields/*` (`FormInput`, `FormSelect`, ...), which wrap this pattern.
 
 ## State Management
 
@@ -564,6 +759,8 @@ function ProductCard({ product }: { product: Product }) {
 }
 ```
 
+Server data lives in TanStack Query (not `useState`); URL-driven state (filters, pagination, sort) lives in router search params.
+
 ## Error Handling
 
 ### Error Boundaries
@@ -609,38 +806,29 @@ function App() {
 }
 ```
 
+API errors are surfaced by the HTTP instance / mutation layer + `toast`; hooks handle the success path and domain-specific messages. For route-level render failures prefer the router `errorComponent`.
+
 ## Project Structure
 
-### Component Organization
+### Overall `src/` organization
 
 ```
 src/
-├── components/
-│   ├── ui/              # Reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   └── Modal.tsx
-│   ├── forms/           # Form components
-│   │   ├── Input.tsx
-│   │   ├── Select.tsx
-│   │   └── Form.tsx
-│   └── layout/          # Layout components
-│       ├── Header.tsx
-│       ├── Footer.tsx
-│       └── Layout.tsx
-├── hooks/               # Custom hooks
-│   ├── useFetch.ts
-│   ├── useLocalStorage.ts
-│   └── useDebounce.ts
-├── lib/                 # Utilities
-│   ├── api.ts
-│   └── utils.ts
-├── types/               # TypeScript types
-│   └── index.ts
-└── pages/               # Page components (Next.js)
-    ├── index.tsx
-    └── products/
-        └── [id].tsx
+├── modules/             # Feature modules (containers / hooks / components) — see Project Architecture
+│   └── <feature>/
+├── routes/              # TanStack file routes (thin: path + validateSearch + component)
+├── components/          # Shared, domain-agnostic components
+│   ├── ui/              # shadcn primitives (Button, Card, Dialog, ...)
+│   ├── form-fields/     # RHF-bound fields (FormInput, FormSelect, ...)
+│   ├── containers/      # Shared wrappers (PageContainer, LoadingContainer, ...)
+│   ├── layouts/         # App layouts
+│   └── utilities/       # Show, HStack, VStack
+├── hooks/               # Generic custom hooks (use-copy, use-debounce, ...)
+├── apis/                # API layer per domain (requests, queries, keys, types, index)
+├── integrations/        # i18n, tanstack-query, auth, dialog providers
+├── stores/ contexts/    # Global state
+├── constant/ utils/ lib/ types/
+└── styles.css           # Design tokens
 ```
 
 ## Common Pitfalls to Avoid
@@ -724,35 +912,44 @@ function UserProfile({ userId }: { userId: string }) {
 }
 ```
 
+### ❌ Bad: Logic inside UI components / containers (architecture)
+
+```tsx
+// ❌ Bad: -ui component fetching and mutating
+const OrderActionsUi = ({ order }: { order: IOrder }) => {
+  const cancelMutation = useCancelOrderMutation();
+  const onCancel = async () => {
+    await cancelMutation.mutateAsync({ id: order.id });
+    toast.success('Cancelled');
+  };
+  return <Button onClick={onCancel}>Cancel</Button>;
+};
+
+// ✅ Good: logic in container/hook, UI receives props
+const OrderActionsUi = ({ onCancel, isCancelling }: OrderActionsUiProps) => (
+  <Button onClick={onCancel} disabled={isCancelling}>{t('buttons.cancel')}</Button>
+);
+```
+
+Effect-related extras: use `useEffectEvent` for effect callbacks that must read the latest values without re-triggering; in React 19 pass `ref` as a prop (no `forwardRef`).
+
 ## Commands
 
 Run these commands for quality checks:
 
 ```bash
-npm run lint          # ESLint with React hooks plugin
-npm run typecheck     # TypeScript compiler
-npm run test          # Jest + React Testing Library
-npm run build         # Production build with optimizations
+# Use the project's own scripts (see BACKBONE.md Commands / package.json). Typical:
+npm run lint          # lint (Biome or ESLint)
+npm run format        # formatter
+npm run test          # unit tests + React Testing Library
+npm run build         # build + typecheck
 ```
 
 ## Examples
 
-### User Authentication Flow
+### Reading order for an existing feature
 
-See: `@src/components/auth/LoginForm.tsx` for login pattern
-See: `@src/hooks/useAuth.ts` for authentication hook pattern
-See: `@src/components/auth/ProtectedRoute.tsx` for route protection
-
-### Data Fetching Pattern
-
-See: `@src/hooks/useFetch.ts` for generic fetch hook
-See: `@src/components/products/ProductList.tsx` for server component pattern
-See: `@src/lib/api.ts` for API client setup
-
-### Form Handling
-
-See: `@src/components/forms/ContactForm.tsx` for controlled form pattern
-See: `@src/components/forms/FormField.tsx` for accessible input pattern
+Open one feature in `src/modules/` and follow the one-way flow: route → `*-container` → `use-*-container` hook (+ `schema.ts`) → `*-ui`. For the API layer see `src/apis/<domain>`. Copy the closest existing feature (form/dialog, table with URL-state pagination, row actions) instead of inventing a new shape.
 
 ## Additional Resources
 
