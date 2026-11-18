@@ -81,8 +81,8 @@ qua bước xác nhận.
 
 | Command                  | Skill            | Làm gì                                                                                   |
 |--------------------------|------------------|------------------------------------------------------------------------------------------|
-| `/spec-brainstorm <ý tưởng>` | brainstorming | Hỏi từng câu, đưa 2–3 phương án, chốt design được duyệt. Tạo branch `feature/<change>`. |
-| `/spec-new <change>`     | specification    | Viết `spec/changes/<change>/spec/`: `spec.md` chứa requirements và AC, thêm topic file khi cần. |
+| `/spec-brainstorm <ý tưởng>` | brainstorming | Hỏi từng câu, đưa 2–3 phương án, chốt design được duyệt; nếu bạn đồng ý thì lưu vào `spec/discussions/`. |
+| `/spec-new <change>`     | specification    | Tạo branch `feature/<change>` và `spec/changes/<change>/` (chuyển discussion đã lưu vào), viết `spec/`: `spec.md` chứa requirements và AC, thêm topic file khi cần. |
 | `/spec-plan <change>`    | writing-plans    | Viết `plan.md` (milestone, task, AC ID và section spec mỗi milestone cần) và `progress.md`. |
 | `/spec-apply <change>`   | executing-plans  | Một milestone: test trước, code, Verify, tự review, một commit, cập nhật progress.md.   |
 | `/spec-status [change]`  | —                | Đọc progress.md và báo change đang ở đâu.                                                 |
@@ -98,8 +98,10 @@ Skill cũng tự kích hoạt khi công việc khớp (xem bảng trong `CLAUDE.
 ```
 spec/
 ├── config.md                      quy ước spec của project
+├── discussions/<ngày>-<chủ-đề>.md  brainstorm đã lưu, chưa thành change (chỉ khi bạn đồng ý lưu)
 ├── specs/<capability>/spec.md     requirements + AC đã chấp nhận: sự thật hiện tại
 ├── changes/<change>/
+│   ├── discussion.md              brainstorm đã lưu, /spec-new chuyển vào (nếu có)
 │   ├── spec/spec.md               requirements + AC (nơi sở hữu duy nhất), Why, Scope, Design
 │   ├── spec/<topic>.md            data-model, api-contracts, business-rules, ... chỉ khi có nội dung
 │   ├── plan.md                    milestone và task: ý định, không phải code; trỏ tới section spec

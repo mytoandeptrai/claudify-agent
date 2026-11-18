@@ -5,7 +5,8 @@
 
 ## Layout
 - Canonical specs: `spec/specs/<capability>/spec.md` — requirements and ACs only, the current truth.
-- Open change: `spec/changes/<change-name>/` with `spec/` (spec.md + topic files), `plan.md`, `progress.md`.
+- Saved brainstorm (optional, on request): `spec/discussions/YYYY-MM-DD-<topic>.md`, moved into the change by `/spec-new`.
+- Open change: `spec/changes/<change-name>/` with `discussion.md` (if saved), `spec/` (spec.md + topic files), `plan.md`, `progress.md`.
 - Finished change: `spec/archive/YYYY-MM-DD-<change-name>/`.
 
 ## Capabilities

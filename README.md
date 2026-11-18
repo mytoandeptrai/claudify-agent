@@ -80,8 +80,8 @@ skip the prompt.
 
 | Command                  | Skill            | Does                                                                                     |
 |--------------------------|------------------|------------------------------------------------------------------------------------------|
-| `/spec-brainstorm <idea>` | brainstorming    | Asks one question per message, compares 2–3 options, ends with an approved design. Creates `feature/<change>`. |
-| `/spec-new <change>`     | specification    | Writes `spec/changes/<change>/spec/`: `spec.md` with requirements and ACs, topic files when the work needs them. |
+| `/spec-brainstorm <idea>` | brainstorming    | Asks one question per message, compares 2–3 options, ends with an approved design; on request saves it to `spec/discussions/`. |
+| `/spec-new <change>`     | specification    | Creates `feature/<change>` and `spec/changes/<change>/` (moves the saved discussion in), writes `spec/`: `spec.md` with requirements and ACs, topic files when the work needs them. |
 | `/spec-plan <change>`    | writing-plans    | Writes `plan.md` (milestones, tasks, the AC IDs and spec sections each one needs) and `progress.md`. |
 | `/spec-apply <change>`   | executing-plans  | One milestone: tests first, code, Verify, self-review, one commit, progress.md updated.  |
 | `/spec-status [change]`  | —                | Reads progress.md and reports where the change stands.                                    |
@@ -97,8 +97,10 @@ Skills also trigger on their own when the work matches (see the table in `CLAUDE
 ```
 spec/
 ├── config.md                      project spec conventions
+├── discussions/<date>-<topic>.md  saved brainstorms not yet a change (only when you ask to save)
 ├── specs/<capability>/spec.md     accepted requirements + ACs: the current truth
 ├── changes/<change>/
+│   ├── discussion.md              the saved brainstorm, moved in by /spec-new (if any)
 │   ├── spec/spec.md               requirements + ACs (the only owner), Why, Scope, Design
 │   ├── spec/<topic>.md            data-model, api-contracts, business-rules, ... only when they have content
 │   ├── plan.md                    milestones and tasks: intent, not code; points at spec sections

@@ -14,7 +14,15 @@ Write only what the user approved or what the repo already states. Anything else
 (money, limits, fees, refunds, permissions, state transitions, legal) with no source is a question for the user, never a "sensible default".
 </HARD-GATE>
 
-Started by brainstorming. If the user brings an approved design of their own, start here and treat it as the conversation.
+Started after brainstorming, in the same session or a new one. If the user brings an approved design of their own, start here and treat it as the
+conversation.
+
+## Start the change
+
+1. Create the branch `feature/<change-name>` from the base branch. The spec, plan and code are committed there.
+2. Find the saved discussion: the file the user names, or a `spec/discussions/*.md` whose topic matches; confirm a match with the user. In a new session,
+   read it in place of the conversation. With no file and no conversation in context, there is no approved design: go back to **brainstorming**.
+3. `git mv` the discussion to `spec/changes/<change-name>/discussion.md`. The spec links to it for rejected options and reasons; it never copies them.
 
 ## When to skip
 
@@ -100,7 +108,7 @@ in one message, most important first.
 
 ## Approval
 
-Add the change as one line under "Open changes" in `BACKBONE.md`. Commit the spec on the feature branch, then ask:
+Add the change as one line under "Open changes" in `BACKBONE.md`. Commit the spec (and the moved discussion) on the feature branch, then ask:
 
 > "Spec committed in `spec/changes/<change-name>/spec/`. Please review it; tell me what to change before we write the plan."
 
