@@ -8,7 +8,7 @@ description: Use after the spec is approved and before any code, to write plan.m
 Cut the approved spec into milestones an experienced engineer can execute. The plan states intent: what changes, in which component, in what order, and how
 each step is proven. The how belongs to the implementer.
 
-Follow `../specification/references/writing.md`.
+Follow `../specification/references/writing.md`. Apply the project conventions in `spec/config.md` without repeating them.
 
 <HARD-GATE>
 Keep implementation out of the plan: tests, function bodies, whole files, commit text and shell commands are written later, by the implementer. If it takes longer than 2–3
@@ -115,7 +115,7 @@ Do not commit; `/spec-execute` commits the spec and plan when it creates the bra
 
 > "Plan written in `spec/changes/<change-name>/plan.md`. Please review it; tell me what to change before we start."
 
-Wait for an explicit yes, then invoke **executing-plans**.
+Wait for an explicit yes from the approver named in `spec/config.md` (default: the user), then invoke **executing-plans**.
 
 ## Red flags
 

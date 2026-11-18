@@ -115,5 +115,5 @@ Add the change as one line under "Open changes" in `BACKBONE.md`. Then ask:
 
 > "Spec written in `spec/changes/<change-name>/spec/`. Please review it; tell me what to change before we write the plan."
 
-Wait for an explicit yes. Then set `Status: approved` and invoke **writing-plans**. From here the spec is frozen; a changed decision goes back to
+Wait for an explicit yes from the approver named in `spec/config.md` (default: the user). Then set `Status: approved` and invoke **writing-plans**. From here the spec is frozen; a changed decision goes back to
 **brainstorming**.

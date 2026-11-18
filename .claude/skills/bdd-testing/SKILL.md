@@ -7,7 +7,7 @@ description: Use when writing or changing tests for code that makes decisions, t
 
 A test describes what the code does for whoever calls it, not how the code is built. Write it first and watch it fail for the right reason.
 
-Before the first test of a session, read `references/test-design.md`: it says how to build a test that survives refactoring.
+Before the first test of a session, read `references/test-design.md`: it says how to build a test that survives refactoring. Apply the test conventions in `spec/config.md`.
 
 ## When to skip
 
