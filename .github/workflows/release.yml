@@ -1,15 +1,18 @@
 name: Release & Publish to NPM
 
-# Every push to main publishes a new patch version.
+# Every push to main publishes a new patch version under the `latest` tag (v1).
+# Every push to v2 publishes a new prerelease (2.0.0-next.N) under the `next` tag,
+# so `npx claudify-agent` keeps serving v1 and `npx claudify-agent@next` serves v2.
 # The version-bump commit is pushed with GITHUB_TOKEN, which does not trigger
 # another workflow run, so this cannot loop.
 on:
   push:
     branches:
       - main
+      - v2
 
 concurrency:
-  group: release
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -18,14 +21,16 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    env:
+      BRANCH: ${{ github.ref_name }}
 
     steps:
-      # Release the tip of main, not the triggering commit: runs are serialized,
+      # Release the tip of the branch, not the triggering commit: runs are serialized,
       # so this includes the previous run's version bump.
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,29 +47,36 @@ jobs:
           npm ci
           npm run lint
 
-      - name: Bump Patch Version
+      - name: Bump Version
         id: version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
+          if [ "$BRANCH" = "v2" ]; then
+            VERSION=$(npm version prerelease --preid next -m "chore(release): %s [skip ci]")
+            echo "dist_tag=next" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
+            echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
           echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: npm publish --access public --tag ${{ steps.version.outputs.dist_tag }}
 
       - name: Push Version Commit & Tag
-        # main may have moved while this run was publishing: rebase the bump on top
+        # The branch may have moved while this run was publishing: rebase the bump on top
         run: |
-          git pull --rebase origin main
+          git pull --rebase origin "$BRANCH"
           git tag -f "${{ steps.version.outputs.tag }}"
-          git push origin HEAD:main
+          git push origin "HEAD:$BRANCH"
           git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
+          prerelease: ${{ steps.version.outputs.dist_tag == 'next' }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

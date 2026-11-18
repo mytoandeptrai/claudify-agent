@@ -34,8 +34,10 @@ Các quyết định thiết kế giúp giảm token mà không làm mỏng spec
 ## 📦 Bắt đầu nhanh
 
 ```bash
-npx claudify-agent@latest init
+npx claudify-agent@next init
 ```
+
+> v2 đang ở bản thử nghiệm, phát hành dưới tag `next` trên npm. `npx claudify-agent` không kèm tag vẫn cài v1.
 
 Lệnh này cài:
 
@@ -55,8 +57,8 @@ Sau đó chạy `/backbone-init` trong Claude Code để điền `BACKBONE.md`.
 v1 cài rules, hooks và các skill theo stack mà v2 đã bỏ. Gỡ chúng rồi cài lại:
 
 ```bash
-npx claudify-agent@latest uninstall   # gỡ file của v1 và v2, giữ BACKBONE.md và spec/
-npx claudify-agent@latest init
+npx claudify-agent@next uninstall   # gỡ file của v1 và v2, giữ BACKBONE.md và spec/
+npx claudify-agent@next init
 ```
 
 `init` giữ nguyên `spec/config.md` hiện có; hãy so nó với `templates/spec/config.md`. Ở v1, mỗi change là một file (`spec/changes/<name>.md`) và canonical spec là
@@ -66,8 +68,8 @@ cấp, hoặc chuyển chúng bằng tay.
 ### Gỡ cài đặt
 
 ```bash
-npx claudify-agent uninstall          # giữ BACKBONE.md và spec/
-npx claudify-agent uninstall --all    # xoá luôn BACKBONE.md và spec/
+npx claudify-agent@next uninstall          # giữ BACKBONE.md và spec/
+npx claudify-agent@next uninstall --all    # xoá luôn BACKBONE.md và spec/
 ```
 
 Lệnh này chỉ xoá các file claudify đã cài (v1 và v2), khối claudify trong `CLAUDE.md` và các hook entry của v1 trong `.claude/settings.json`. Thêm `--yes` để bỏ

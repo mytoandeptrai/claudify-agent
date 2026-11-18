@@ -65,7 +65,7 @@ if (command === 'init') {
     const legacy = (await legacyFiles()).filter((rel) => !current.has(rel) && existsSync(join(targetDir, '.claude', rel)));
     if (legacy.length > 0) {
       console.error(`  ❌ Found ${legacy.length} files from claudify v1 in .claude/ (e.g. ${legacy[0]}).`);
-      console.error('     Run `npx claudify-agent@latest uninstall` first, then init again.');
+      console.error('     Run `npx claudify-agent@next uninstall` first, then init again.');
       process.exit(1);
     }
     await cp(join(packageRoot, '.claude'), join(targetDir, '.claude'), { recursive: true });
@@ -186,7 +186,7 @@ if (command === 'init') {
       console.log('  ✅ Removed BACKBONE.md and spec/');
     }
 
-    console.log('\n✅ Done. To install again: npx claudify-agent@latest init');
+    console.log('\n✅ Done. To install again: npx claudify-agent@next init');
   } catch (err) {
     console.error('❌ Failed to uninstall:', err.message);
     process.exit(1);

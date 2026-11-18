@@ -33,8 +33,10 @@ Design choices that keep the token cost down without thinning the spec:
 ## 📦 Quick Start
 
 ```bash
-npx claudify-agent@latest init
+npx claudify-agent@next init
 ```
+
+> v2 is in preview under the npm `next` tag. `npx claudify-agent` without a tag still installs v1.
 
 This installs:
 
@@ -54,8 +56,8 @@ Then run `/backbone-init` in Claude Code to fill `BACKBONE.md`.
 v1 shipped rules, hooks and stack skills that v2 drops. Remove them, then install again:
 
 ```bash
-npx claudify-agent@latest uninstall   # removes v1 and v2 files, keeps BACKBONE.md and spec/
-npx claudify-agent@latest init
+npx claudify-agent@next uninstall   # removes v1 and v2 files, keeps BACKBONE.md and spec/
+npx claudify-agent@next init
 ```
 
 `init` keeps your existing `spec/config.md`; compare it with `templates/spec/config.md`. v1 changes were single files (`spec/changes/<name>.md`) and canonical
@@ -65,8 +67,8 @@ upgrade, or move them by hand.
 ### Uninstall
 
 ```bash
-npx claudify-agent uninstall          # keeps BACKBONE.md and spec/
-npx claudify-agent uninstall --all    # also removes BACKBONE.md and spec/
+npx claudify-agent@next uninstall          # keeps BACKBONE.md and spec/
+npx claudify-agent@next uninstall --all    # also removes BACKBONE.md and spec/
 ```
 
 It deletes only the files claudify installed (v1 and v2), the claudify block in `CLAUDE.md` and v1's hook entries in `.claude/settings.json`. Add `--yes` to
