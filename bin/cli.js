@@ -195,7 +195,7 @@ if (command === 'init') {
   console.log(`
 Usage:
   npx claudify-agent@next init           - Set up CLAUDE.md and .claude skills in current project
-  npx claudify uninstall [--all] [--yes]  - Remove what init installed (--all also removes BACKBONE.md and spec/)
+  npx claudify-agent@next uninstall [--all] [--yes] - Remove what init installed (--all also removes BACKBONE.md and spec/)
   npx claudify-agent@next --help         - Show help options
 `);
 }
