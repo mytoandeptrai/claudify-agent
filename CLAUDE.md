@@ -1,64 +1,35 @@
-# CLAUDE CORE OPERATING SYSTEM
+# Claudify workflow
 
-> **Universal Directive:** You are an autonomous Senior Software Engineer operating via Claude Code / Anthropic Agent loop. Follow these concise, modular instructions. Do not load all guidelines into context; Read the referenced files only when the task needs them.
-
----
-
-## 0. 🗺️ Project Backbone (always loaded)
+## Project backbone
 @BACKBONE.md
 
-If it still holds `<placeholders>`, suggest `/backbone-init`. Follow its Invariants on every task.
-If you finish work without a spec that changes structure, docs, commands or capabilities, suggest `/backbone-sync`.
-Never invent business rules (money, limits, refunds, permissions, status transitions, legal): if no spec, invariant or doc states it, ask.
+If it still holds `<placeholders>`, suggest `/backbone-init`. Follow its Invariants on every task. After work done without a spec that changes structure, docs,
+commands or capabilities, suggest `/backbone-sync`. The constraints of every task are in `.claude/rules/core.md`.
 
-## 1. 🛑 Context & Token Preservation (Sub-20 Line Core)
-- Keep responses concise and targeted. Never dump entire files when diffs suffice.
-- Do NOT read whole directory trees. Inspect shallow structure first.
-- Context Tiers (Inspect when prompted):
-  - **Tier 1 (Base):** `.claude/rules/context-tier-1.md`
-  - **Tier 2 (Deep Task):** `.claude/rules/context-tier-2.md`
-  - **Anti-Patterns:** `.claude/rules/anti-patterns.md`
+## Routing
 
-## 2. 📋 Plan First Protocol (Anti-Drift)
-- For tasks touching **>= 2 files** or core architecture:
-  - Generate a concise Plan before modifying files.
-  - Inside `/spec-apply`, the approved spec Tasks are the plan; do not write another one.
-  - Research protocol: `.claude/rules/plan-mode-research.md`
-  - Execution checklist: `.claude/rules/plan-mode-execution.md`
-  - Validation steps: `.claude/rules/plan-mode-validation.md`
-  - Plan structure guide: `.claude/rules/plan-mode-structure.md`
+Load the matching skill with the `Skill` tool first, then work; a skill decides the method, so calling it halfway through is too late. Explicit user
+instructions beat a skill, and a skill beats your defaults.
 
-## 2b. 📐 Spec Workflow (features only, opt-in by command)
-- `/spec-new` → `/spec-apply` → `/spec-archive`. Specs live in `spec/` (config, changes, specs backbone).
-- Bugs and small tasks: no spec, work directly.
-- After the user corrects a mistake, suggest `/learn` so it never repeats.
+| Situation                                                 | Command            | Skill                          |
+|-----------------------------------------------------------|--------------------|--------------------------------|
+| New feature, component or behaviour change                | `/spec-brainstorm` | **brainstorming**              |
+| Design approved, spec not written                         | `/spec-new`        | **specification**              |
+| Spec approved, no plan yet                                | `/spec-plan`       | **writing-plans**              |
+| Plan exists: build or resume the next milestone           | `/spec-apply`      | **executing-plans**            |
+| Status of a change                                        | `/spec-status`     | (reads progress.md)            |
+| Every milestone ticked: verify the change as a whole      | `/spec-verify`     | **verification**               |
+| Verified change: archive, then merge or PR                | `/spec-finish`     | **finishing-branch**           |
+| A bug or an unexplained failure                           | `/debug`           | **debugging**                  |
+| Before reporting done, fixed or passing                   |                    | **verification**               |
+| Tests written or edited with no skill running             |                    | **bdd-testing**                |
 
-## 3. 🧪 Zero-Token Local Verification Loop
-When a task that changed code is otherwise done, run the `Verify` command from `BACKBONE.md` Commands once, at the end, never between edits. Fix failures and rerun; do not report done until it passes. Skip if only docs/specs changed. Inside `/spec-apply` the task DoD replaces this. No `Verify` line filled in → use the stack defaults below.
-Stack defaults:
-- **Node/TS/NestJS:** `npm run lint:fix && npm run typecheck`
-- **Go Backend:** `go vet ./... && go test -race ./...`
-- **Solidity (SMC):** `forge test -vvv` hoặc `npx hardhat test`
-- Core standards: `.claude/rules/general.md` & `.claude/rules/security-critical.md`
+Order is fixed: an approved design before the spec, an approved plan before code. If the user arrives with an approved design or plan, start at the matching
+step. One feature is one change in `spec/changes/<change-name>/` (`spec/`, `plan.md`, `progress.md`), whatever its size; size changes the depth of the spec and the
+number of milestones, never the number of changes.
 
-## 4. 📚 On-Demand Skills Index (Load ONLY When Tech Is Used)
-- **Backend Concurrency & Locking:** `.claude/skills/backend-concurrency/SKILL.md`
-- **NestJS Enterprise:** `.claude/skills/nestjs-guide/SKILL.md`
-- **Golang Backend:** `.claude/skills/golang-guide/SKILL.md`
-- **Solidity (Smart Contracts):** `.claude/skills/solidity-guide/SKILL.md`
-- **Next.js:** `.claude/skills/nextjs-guide/SKILL.md`
-- **React:** `.claude/skills/react-guide/SKILL.md`
-- **Python:** `.claude/skills/python-guide/SKILL.md`
-- **Security (OWASP):** `.claude/skills/security-guide/SKILL.md`
-- **Vite:** `.claude/skills/vite-guide/SKILL.md`
-- **MCP Mastery:** `.claude/skills/mcp-mastery/SKILL.md`
-- **Tool Selection:** `.claude/skills/tool-selection/SKILL.md`
-- **Debug Optimizer:** `.claude/skills/debug-optimizer/SKILL.md`
-- **Parallel Exploration:** `.claude/skills/parallel-exploration/SKILL.md`
-- **Learning Loop:** `.claude/skills/learning-loop/SKILL.md`
+## No skill needed
 
-## 5. 🔌 Tool & MCP Strategy
-- Auto Tool Selection: `.claude/rules/tool-auto-selection.md`
-- Tool Strategy: `.claude/rules/tool-strategy.md`
-- MCP Auto-Usage: `.claude/rules/mcp-auto-use.md`
-- MCP Integration Guide: `.claude/docs/MCP-INTEGRATION-GUIDE.md`
+Questions, reading or searching the code, and one-line changes you can prove with one command: answer or do them directly. Inside a skill, follow what that
+skill calls. Use a skill when it plainly fits, not whenever it might. When a code task without a skill is done, run the `Verify` command from `BACKBONE.md` once
+at the end.

@@ -5,13 +5,13 @@
  * Every acceptance criterion `<capability>/AC-<n>` must be named by at least one test.
  *
  * Usage:
- *   node .claude/scripts/spec-check.mjs                       # all of spec/specs/
- *   node .claude/scripts/spec-check.mjs spec/changes/x.md     # one change (before archive)
+ *   node .claude/scripts/spec-check.mjs                       # all of spec/specs/<capability>/spec.md
+ *   node .claude/scripts/spec-check.mjs spec/changes/x        # one change (its spec/spec.md), before finishing
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, basename } from 'path';
+import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
+import { join } from 'path';
 
 const AC_LINE = /\bAC-(\d+)\b/g;
 const TEST_REF = /([\w-]+)\/AC-(\d+)(?!\d)/g;
@@ -71,12 +71,18 @@ function referencedAcs() {
 const target = process.argv[2];
 const declared = new Set();
 if (target) {
-  for (const id of declaredAcs(target)) declared.add(id);
+  // A change folder owns its requirements in spec/spec.md
+  const file = statSync(target).isDirectory() ? join(target, 'spec', 'spec.md') : target;
+  for (const id of declaredAcs(file)) declared.add(id);
 } else if (existsSync('spec/specs')) {
-  for (const f of readdirSync('spec/specs').filter((f) => f.endsWith('.md'))) {
-    for (const id of declaredAcs(join('spec/specs', f), basename(f, '.md'))) declared.add(id);
+  for (const cap of readdirSync('spec/specs', { withFileTypes: true }).filter((e) => e.isDirectory())) {
+    const file = join('spec/specs', cap.name, 'spec.md');
+    if (existsSync(file)) for (const id of declaredAcs(file, cap.name)) declared.add(id);
   }
 }
+
+const flat = existsSync('spec/specs') ? readdirSync('spec/specs').filter((f) => f.endsWith('.md')) : [];
+if (!target && flat.length) console.log(`⚠️  Not checked (v1 layout, move to spec/specs/<capability>/spec.md): ${flat.join(', ')}`);
 
 if (declared.size === 0) {
   console.log('ℹ️  No acceptance criteria (AC-<n>) found.');

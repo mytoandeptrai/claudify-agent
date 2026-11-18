@@ -19,6 +19,18 @@ const __dirname = dirname(__filename);
 const packageRoot = resolve(__dirname, '..');
 
 const args = process.argv.slice(2);
+
+// Paths (relative to .claude/) that claudify v1 installed or its hooks generated; v2 no longer ships them
+const listFiles = async (dir) => {
+  const out = [];
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) out.push(...(await listFiles(p)));
+    else out.push(p);
+  }
+  return out;
+};
+const legacyFiles = async () => JSON.parse(await readFile(join(packageRoot, 'bin', 'legacy-v1.json'), 'utf-8'));
 const command = args[0];
 
 console.log('⚡ Claudify - Claude Agent & Context Optimization Toolkit\n');
@@ -47,18 +59,17 @@ if (command === 'init') {
       }
     }
 
-    // 2. Copy .claude folder (never overwrite the project's own settings.json)
-    const settingsSrc = join(packageRoot, '.claude', 'settings.json');
-    const settingsDest = join(targetDir, '.claude', 'settings.json');
-    const keepSettings = existsSync(settingsDest);
-    await cp(join(packageRoot, '.claude'), join(targetDir, '.claude'), {
-      recursive: true,
-      filter: (src) => !(keepSettings && src === settingsSrc),
-    });
-    console.log('  ✅ Created .claude/ (Skills, rules and Claude Code hooks)');
-    if (keepSettings) {
-      console.log(`  ⚠️  Kept your existing .claude/settings.json — merge the "hooks" block from ${settingsSrc} manually.`);
+    // 2. Copy .claude folder (commands, skills, rules, scripts)
+    // v1 leftovers (rules, hooks, stack skills) would keep loading every session: refuse to mix the two
+    const current = new Set((await listFiles(join(packageRoot, '.claude'))).map((f) => f.slice(packageRoot.length + '/.claude/'.length)));
+    const legacy = (await legacyFiles()).filter((rel) => !current.has(rel) && existsSync(join(targetDir, '.claude', rel)));
+    if (legacy.length > 0) {
+      console.error(`  ❌ Found ${legacy.length} files from claudify v1 in .claude/ (e.g. ${legacy[0]}).`);
+      console.error('     Run `npx claudify-agent@latest uninstall` first, then init again.');
+      process.exit(1);
     }
+    await cp(join(packageRoot, '.claude'), join(targetDir, '.claude'), { recursive: true });
+    console.log('  ✅ Created .claude/ (commands, skills, rules and scripts)');
 
     // 3. Scaffold BACKBONE.md and spec/ (never overwrite existing files)
     const templates = [
@@ -103,20 +114,12 @@ if (command === 'init') {
     }
 
     // 1. .claude/: delete only the files claudify ships; your own commands/skills stay
-    const shipped = async (dir) => {
-      const out = [];
-      for (const e of await readdir(dir, { withFileTypes: true })) {
-        const p = join(dir, e.name);
-        if (e.isDirectory()) out.push(...(await shipped(p)));
-        else out.push(p);
-      }
-      return out;
-    };
     const srcClaude = join(packageRoot, '.claude');
     const dstClaude = join(targetDir, '.claude');
+    // Files this version ships, plus the files claudify v1 installed or generated
+    const rels = [...new Set([...(await listFiles(srcClaude)).map((f) => f.slice(srcClaude.length + 1)), ...(await legacyFiles())])];
     let removed = 0;
-    for (const file of await shipped(srcClaude)) {
-      const rel = file.slice(srcClaude.length + 1);
+    for (const rel of rels) {
       if (rel === 'settings.json') continue;
       const dest = join(dstClaude, rel);
       if (existsSync(dest)) {
@@ -125,7 +128,7 @@ if (command === 'init') {
       }
     }
     // prune directories that are now empty (deepest first)
-    const dirs = (await shipped(srcClaude)).map((f) => dirname(f).slice(srcClaude.length + 1));
+    const dirs = rels.map((rel) => dirname(rel));
     for (const d of [...new Set(dirs)].filter(Boolean).sort((a, b) => b.length - a.length)) {
       let dir = join(dstClaude, d);
       while (dir.startsWith(dstClaude) && dir !== dstClaude && existsSync(dir) && (await readdir(dir)).length === 0) {

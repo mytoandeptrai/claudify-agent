@@ -13,7 +13,7 @@ Draft or refresh `BACKBONE.md` at the project root. Notes from me: $ARGUMENTS
 2. Fill every section of the existing `BACKBONE.md` (or the template if missing):
    - Docs index: one line per doc, with status. Mark a doc outdated only with evidence (superseded note, archive folder, version mismatch); otherwise ask.
    - Domain glossary: the main business nouns from models/entities/DB schema/status enums, with meaning and states. Ask me when a name is cryptic (e.g. `tbl_sub_v3`, `flag_v2`) instead of guessing. Keep it to the terms that matter (~15).
-   - Capabilities: one line per `spec/specs/*.md` (or `openspec/specs/*/` if migrating from OpenSpec).
+   - Capabilities: one line per `spec/specs/<capability>/spec.md` (or `openspec/specs/*/` if migrating from OpenSpec).
    - Invariants: only rules found in docs or that I confirm. Never invent business rules.
 3. Keep it under ~80 lines. Link, never copy.
 4. List what you could not determine as questions, batched in one message.

@@ -1,7 +1,7 @@
 # Project Backbone
 
 > Loaded every session. A map, not documentation: link to details, never copy them. Keep under ~80 lines.
-> Fill with `/backbone-init`; kept in sync by `/spec-new`, `/spec-archive` and `/learn`; after work done without specs, run `/backbone-sync`.
+> Fill with `/backbone-init`; kept in sync by `/spec-new` and `/spec-finish`; after work done without specs, run `/backbone-sync`.
 
 Last synced: <date> | <sha>   (multi-repo: <date> | <repo>@<sha> <repo>@<sha> ...)
 
@@ -26,16 +26,16 @@ Last synced: <date> | <sha>   (multi-repo: <date> | <repo>@<sha> <repo>@<sha> ..
 | <path> | <topic> | current / outdated (do not use for X) |
 
 ## Capabilities
-<!-- One line per spec/specs/<capability>.md -->
+<!-- One line per spec/specs/<capability>/spec.md -->
 - <capability>: <one line>
 
 ## Open changes
-<!-- One line per spec/changes/<name>.md not yet archived -->
+<!-- One line per spec/changes/<name>/ not yet archived -->
 - none
 
 ## Commands
 - Install: <cmd>
-- Verify (DoD default): <lint && typecheck && test>
+- Verify (milestone and task DoD): <lint && typecheck && test>
 
 ## Invariants
 <!-- Rules every change MUST respect. One line each. -->

@@ -1,17 +1,19 @@
 # Spec Config
 
-> Rules for writing spec changes, read by `/spec-new` only. Project context, invariants and commands live in `BACKBONE.md`.
+> Project conventions for specs, read by the specification and writing-plans skills. The method lives in the skills; project context, invariants and
+> commands live in `BACKBONE.md`. Edit this file to fit the project; delete a line that does not apply.
 
-## Proposal
-- Must have Why, Scope (in / out = Non-goals), Depends on, Risks.
-- Reference docs by section instead of copying them.
+## Layout
+- Canonical specs: `spec/specs/<capability>/spec.md` — requirements and ACs only, the current truth.
+- Open change: `spec/changes/<change-name>/` with `spec/` (spec.md + topic files), `plan.md`, `progress.md`.
+- Finished change: `spec/archive/YYYY-MM-DD-<change-name>/`.
 
-## Requirements
-- `#### ADDED|MODIFIED|REMOVED Requirement: <name>` containing SHALL or MUST.
-- Each has ACs `- AC-<n> <name>: GIVEN / WHEN / THEN` with concrete values: at least one happy path and one failure.
-- AC IDs are per capability, never reused; tests name them as `<capability>/AC-<n>` (checked by `node .claude/scripts/spec-check.mjs`).
+## Capabilities
+<!-- The names used as <capability> in AC IDs, one line each, e.g. `payment`, `refund`. -->
 
-## Tasks
-- Each task fits in 2-4 hours, lists files/packages touched and its DoD.
-- Tests ship with the task that adds the logic, not at the end.
-- DoD default: the Verify command in `BACKBONE.md`.
+## Acceptance criteria
+- Test naming: <e.g. `describe("<capability>/AC-<n>: ...")`; Go: `// <capability>/AC-<n>` comment>.
+- Required failure cases: <e.g. every money flow has an AC for a provider timeout>.
+
+## Review
+- Who approves specs and plans: <e.g. the change author's lead>.
