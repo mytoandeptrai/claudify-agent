@@ -13,13 +13,13 @@ instructions beat a skill, and a skill beats your defaults.
 
 | Situation                                                 | Command            | Skill                          |
 |-----------------------------------------------------------|--------------------|--------------------------------|
-| New feature, component or behaviour change                | `/spec-brainstorm` | **brainstorming**              |
-| Design approved, spec not written                         | `/spec-new`        | **specification**              |
+| New feature, component or behaviour change                | `/spec-explore`    | **brainstorming**              |
+| Design approved, spec not written                         | `/spec-define`     | **specification**              |
 | Spec approved, no plan yet                                | `/spec-plan`       | **writing-plans**              |
-| Plan exists: build or resume the next milestone           | `/spec-apply`      | **executing-plans**            |
+| Plan exists: build or resume the next milestone           | `/spec-execute`    | **executing-plans**            |
 | Status of a change                                        | `/spec-status`     | (reads progress.md)            |
 | Every milestone ticked: verify the change as a whole      | `/spec-verify`     | **verification**               |
-| Verified change: archive, then merge or PR                | `/spec-finish`     | **finishing-branch**           |
+| Verified change: archive, then merge or PR                | `/spec-ship`       | **finishing-branch**           |
 | A bug or an unexplained failure                           | `/debug`           | **debugging**                  |
 | Before reporting done, fixed or passing                   |                    | **verification**               |
 | Tests written or edited with no skill running             |                    | **bdd-testing**                |

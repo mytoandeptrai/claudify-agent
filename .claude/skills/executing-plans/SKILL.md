@@ -33,7 +33,7 @@ Within one session, do not re-read what is already loaded. In a new session, pro
 
 ## One run = one milestone
 
-`/spec-apply` completes the current milestone, then stops and reports. A milestone is the smallest piece with its own commit and visible result. Running one
+`/spec-execute` completes the current milestone, then stops and reports. A milestone is the smallest piece with its own commit and visible result. Running one
 task per call reloads the same context for every task; running the whole plan at once skips the user's review between slices. Continue to the next milestone
 in the same run only when the user asked for more than one.
 

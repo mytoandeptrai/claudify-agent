@@ -27,7 +27,7 @@ Design choices that keep the token cost down without thinning the spec:
 
 - **Small always-loaded context.** Only `CLAUDE.md`, `BACKBONE.md` and one short `.claude/rules/core.md` load every session. Skills load when invoked.
 - **One feature, one change.** No word cap on specs. A big feature gets more milestones, not more changes, so the spec → plan → apply → finish cycle runs once.
-- **Milestone execution in the main session.** Each `/spec-apply` reads `progress.md`, the current milestone, and only the spec sections that milestone names.
+- **Milestone execution in the main session.** Each `/spec-execute` reads `progress.md`, the current milestone, and only the spec sections that milestone names.
 - **One subagent in the whole workflow:** the end-of-feature reviewer in `/spec-verify`.
 
 ## 📦 Quick Start
@@ -75,18 +75,18 @@ skip the prompt.
 ## 🔁 Workflow
 
 ```
-/spec-brainstorm → /spec-new → /spec-plan → /spec-apply (per milestone) → /spec-verify → /spec-finish
+/spec-explore → /spec-define → /spec-plan → /spec-execute (per milestone) → /spec-verify → /spec-ship
 ```
 
 | Command                  | Skill            | Does                                                                                     |
 |--------------------------|------------------|------------------------------------------------------------------------------------------|
-| `/spec-brainstorm <idea>` | brainstorming    | Asks one question per message, compares 2–3 options, ends with an approved design; on request saves it to `spec/discussions/`. |
-| `/spec-new <change>`     | specification    | Creates `feature/<change>` and `spec/changes/<change>/` (moves the saved discussion in), writes `spec/`: `spec.md` with requirements and ACs, topic files when the work needs them. |
+| `/spec-explore <idea>` | brainstorming    | Asks one question per message, compares 2–3 options, ends with an approved design; on request saves it to `spec/discussions/`. |
+| `/spec-define <change>`     | specification    | Creates `feature/<change>` and `spec/changes/<change>/` (moves the saved discussion in), writes `spec/`: `spec.md` with requirements and ACs, topic files when the work needs them. |
 | `/spec-plan <change>`    | writing-plans    | Writes `plan.md` (milestones, tasks, the AC IDs and spec sections each one needs) and `progress.md`. |
-| `/spec-apply <change>`   | executing-plans  | One milestone: tests first, code, Verify, self-review, one commit, progress.md updated.  |
+| `/spec-execute <change>`   | executing-plans  | One milestone: tests first, code, Verify, self-review, one commit, progress.md updated.  |
 | `/spec-status [change]`  | —                | Reads progress.md and reports where the change stands.                                    |
 | `/spec-verify <change>`  | verification     | spec-check, full Verify, AC walk-through, one reviewer subagent. Status → `verified`.    |
-| `/spec-finish <change>`  | finishing-branch | Syncs requirements into `spec/specs/`, archives the change, merge / PR / keep / discard. |
+| `/spec-ship <change>`  | finishing-branch | Syncs requirements into `spec/specs/`, archives the change, merge / PR / keep / discard. |
 | `/debug <symptom>`       | debugging        | Root cause with evidence, red-first regression test, fix.                                |
 | `/backbone-init`, `/backbone-sync` | —      | Create or refresh `BACKBONE.md`.                                                         |
 
@@ -100,7 +100,7 @@ spec/
 ├── discussions/<date>-<topic>.md  saved brainstorms not yet a change (only when you ask to save)
 ├── specs/<capability>/spec.md     accepted requirements + ACs: the current truth
 ├── changes/<change>/
-│   ├── discussion.md              the saved brainstorm, moved in by /spec-new (if any)
+│   ├── discussion.md              the saved brainstorm, moved in by /spec-define (if any)
 │   ├── spec/spec.md               requirements + ACs (the only owner), Why, Scope, Design
 │   ├── spec/<topic>.md            data-model, api-contracts, business-rules, ... only when they have content
 │   ├── plan.md                    milestones and tasks: intent, not code; points at spec sections
@@ -120,6 +120,154 @@ ACs have IDs `<capability>/AC-<n>`. Tests name them: `describe("refund/AC-2: exp
 node .claude/scripts/spec-check.mjs spec/changes/add-refund   # one change
 node .claude/scripts/spec-check.mjs                           # all canonical specs
 ```
+
+## 🧠 Architecture
+
+**Context loads in three layers, only as needed:**
+
+| Layer | When | What |
+|---|---|---|
+| 1. Always | every session (~500 words + BACKBONE) | `CLAUDE.md` routing table, `.claude/rules/core.md`, `BACKBONE.md` |
+| 2. On call | when a command or trigger invokes it | the one skill for the step, e.g. executing-plans |
+| 3. Per milestone | inside `/spec-execute` | `progress.md` → the current milestone in `plan.md` → only the spec sections on its `Read:` line |
+
+**The loop of one `/spec-execute` run:**
+
+```mermaid
+graph TD
+    A["Read progress.md"] --> B["Read current milestone + spec sections on Read:"]
+    B --> C["Write tests named with AC IDs, watch them fail"]
+    C --> D["Smallest code that passes"]
+    D --> E["Run BACKBONE Verify command"]
+    E -->|"red, max 5 attempts"| D
+    E -->|"green"| F["Self-review with structure checklist, clean up"]
+    F --> G["Run tests + Verify again"]
+    G --> H["One commit for the milestone"]
+    H --> I["Update progress.md, report, stop"]
+    D -.->|"code must differ from spec"| J["Fix the spec, or stop and return to explore"]
+```
+
+**Checks run locally, at the right moment.** No hooks fire on every edit. The Verify command runs at the end of each milestone, `spec-check.mjs` proves every AC has a test, and only the summary line and failures enter the context.
+
+## 🧪 Example: refunds in a NestJS API, end to end
+
+**Day 1 — agree the design.**
+
+```
+/spec-explore admins can refund a paid order
+```
+
+Claude reads the payment code and `spec/specs/payment/spec.md`, then asks one question at a time:
+
+```
+Claude: Can an admin refund part of an order, or only the full amount?
+You:    Partial is allowed, total refunds never exceed the paid amount.
+Claude: Is there a time limit after payment?
+You:    30 days.
+Claude: Two options: (1) refund synchronously through the provider API, (2) create a pending
+        refund and confirm it by webhook. I recommend (2): the provider confirms refunds
+        asynchronously and can take minutes. ...
+```
+
+After you approve each part of the design:
+
+```
+Claude: Save this discussion to spec/discussions/ so a new session can continue from it?
+You:    yes
+```
+
+→ `spec/discussions/2026-11-18-refund.md`: goal, decisions with reasons, rejected options, the rules you confirmed, open questions.
+
+**Day 1 — write the spec.** New session, or the same one:
+
+```
+/spec-define add-refund
+```
+
+Claude creates branch `feature/add-refund`, moves the discussion into `spec/changes/add-refund/discussion.md`, and writes `spec/changes/add-refund/spec/spec.md`:
+
+```markdown
+### refund (new)
+#### ADDED Requirement: Admin refunds a paid order
+An admin MUST be able to refund a paid order, in full or in part, within 30 days of payment.
+- AC-1 partial refund: GIVEN a paid order of 100.00 WHEN an admin refunds 40.00 THEN a refund of 40.00 is pending
+- AC-2 over-refund: GIVEN 80.00 already refunded on a 100.00 order WHEN an admin refunds 30.00 THEN it is rejected with 422
+- AC-3 expired: GIVEN an order paid 31 days ago WHEN an admin refunds THEN it is rejected with 422
+- AC-4 confirmed: GIVEN a pending refund WHEN the provider webhook reports success THEN the refund is completed
+- AC-5 duplicate webhook: GIVEN a completed refund WHEN the same webhook arrives again THEN nothing changes
+```
+
+Because the work has a contract and a state machine, it also writes `api-contracts.md` and `data-model.md`. You review and approve.
+
+**Day 1 — plan.**
+
+```
+/spec-plan add-refund
+```
+
+`plan.md` (excerpt):
+
+```markdown
+### M1: Create refunds through the API
+Read: spec.md#requirements (refund), api-contracts.md#post-refunds, data-model.md#refund
+Covers: refund/AC-1, AC-2, AC-3
+- M1.1 Refund entity and repository, amounts in minor units
+- M1.2 RefundService: refundable amount and 30-day window
+- M1.3 POST /orders/:id/refunds, admin only
+Done when: an admin can create a pending refund; invalid ones get 422
+
+### M2: Confirm refunds by webhook
+Read: spec.md#requirements (refund), api-contracts.md#provider-webhook
+Covers: refund/AC-4, AC-5
+...
+```
+
+**Day 2 — build, one milestone per run.**
+
+```
+/spec-execute add-refund
+```
+
+```
+Claude: M1 done: refunds created through the API.
+        Proof: 9 tests pass (refund/AC-1..AC-3), npm run lint && npm test green. Commit 3f2a91c.
+        Next: M2 Confirm refunds by webhook.
+```
+
+You look at the diff, then run `/spec-execute add-refund` again. A new session works the same way: Claude reads `progress.md`, sees M1 ticked, and starts M2.
+
+```markdown
+# Progress: add-refund
+Base: 9c1d0e2 | Current: M2 | Status: in progress
+
+## Milestones
+- [x] M1
+- [ ] M2
+
+## Done
+- M1.1, M1.2, M1.3 — 3f2a91c
+
+## Verification
+- M1: npm run lint && npm test → 0 errors, 142/142 passed
+
+## Findings
+- M1: the provider returns `pending`, not `processing`; api-contracts.md updated
+```
+
+**Day 3 — verify and ship.**
+
+```
+/spec-verify add-refund     # spec-check 5/5 ACs covered, full Verify, one independent review
+/spec-ship add-refund       # refund requirements → spec/specs/refund/spec.md, change archived, then merge / PR / keep / discard
+```
+
+**A bug, no spec needed:**
+
+```
+/debug refund webhook returns 500 when the order was deleted
+```
+
+Claude reproduces it, states "Cause: X. Evidence: Y.", writes a failing test, fixes it, and commits `fix: ...`.
 
 ## 📄 License
 

@@ -74,7 +74,7 @@ if (command === 'init') {
     // 3. Scaffold BACKBONE.md and spec/ (never overwrite existing files)
     const templates = [
       ['BACKBONE.md', 'project map loaded every session; run /backbone-init to fill it'],
-      ['spec/config.md', 'rules for /spec-new'],
+      ['spec/config.md', 'conventions for /spec-define'],
     ];
     for (const [file, purpose] of templates) {
       const dest = join(targetDir, file);
