@@ -21,7 +21,9 @@ No plan.md: use **brainstorming**, or **debugging** for a bug. Trivial changes n
 1. Read `spec/changes/<change-name>/progress.md`: current milestone, done tasks, blockers, findings. If Status is `blocked`, take the blocker to the user first.
 2. Read `plan.md` once: Goal, Components, Assumptions, and the current milestone in full. Other milestones by title only.
 3. Read the spec sections in the milestone's *Read* line and nothing else of the spec. `BACKBONE.md` is already loaded; its Invariants apply.
-4. First run only: check out `feature/<change-name>`, write `Base: <merge-base with the base branch>` in progress.md, set Status `in progress`.
+4. Branch: read the `Branch:` field of `spec.md`. If the branch exists, check it out and continue. If not (first run), create it from its base, commit the
+   change folder (discussion, spec, plan, progress) as `docs(<change-name>): spec and plan`, write `Base: <that commit's parent>` in progress.md and set
+   Status `in progress`. Never push: pushing happens only after `/spec-verify` passes.
 5. Question the milestone before coding: a task with no AC, an AC you cannot test, an assumption the code contradicts. Ask; do not pick a meaning and build on
    it.
 

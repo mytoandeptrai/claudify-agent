@@ -81,11 +81,11 @@ skip the prompt.
 | Command                  | Skill            | Does                                                                                     |
 |--------------------------|------------------|------------------------------------------------------------------------------------------|
 | `/spec-explore <idea>` | brainstorming    | Asks one question per message, compares 2–3 options, ends with an approved design; on request saves it to `spec/discussions/`. |
-| `/spec-define <change>`     | specification    | Creates `feature/<change>` and `spec/changes/<change>/` (moves the saved discussion in), writes `spec/`: `spec.md` with requirements and ACs, topic files when the work needs them. |
+| `/spec-define <change>`     | specification    | Creates `spec/changes/<change>/` (moves the saved discussion in) and writes `spec/`; no commit, no branch yet: `spec.md` with requirements and ACs, topic files when the work needs them. |
 | `/spec-plan <change>`    | writing-plans    | Writes `plan.md` (milestones, tasks, the AC IDs and spec sections each one needs) and `progress.md`. |
-| `/spec-execute <change>`   | executing-plans  | One milestone: tests first, code, Verify, self-review, one commit, progress.md updated.  |
+| `/spec-execute <change>`   | executing-plans  | First run creates the branch and commits spec + plan. Then one milestone: tests first, code, Verify, self-review, one commit. Never pushes. |
 | `/spec-status [change]`  | —                | Reads progress.md and reports where the change stands.                                    |
-| `/spec-verify <change>`  | verification     | spec-check, full Verify, AC walk-through, one reviewer subagent. Status → `verified`.    |
+| `/spec-verify <change>`  | verification     | spec-check, full Verify, AC walk-through, one reviewer subagent. Only if all pass: Status `verified`, push the branch. |
 | `/spec-ship <change>`  | finishing-branch | Syncs requirements into `spec/specs/`, archives the change, merge / PR / keep / discard. |
 | `/debug <symptom>`       | debugging        | Root cause with evidence, red-first regression test, fix.                                |
 | `/backbone-init`, `/backbone-sync` | —      | Create or refresh `BACKBONE.md`.                                                         |
@@ -184,7 +184,7 @@ You:    yes
 /spec-define add-refund
 ```
 
-Claude creates branch `feature/add-refund`, moves the discussion into `spec/changes/add-refund/discussion.md`, and writes `spec/changes/add-refund/spec/spec.md`:
+Claude moves the discussion into `spec/changes/add-refund/discussion.md`, and writes `spec/changes/add-refund/spec/spec.md`:
 
 ```markdown
 ### refund (new)
@@ -222,7 +222,7 @@ Covers: refund/AC-4, AC-5
 ...
 ```
 
-**Day 2 — build, one milestone per run.**
+**Day 2 — build, one milestone per run.** Nothing was committed so far; the first run creates `feature/add-refund` and commits the spec and plan.
 
 ```
 /spec-execute add-refund
@@ -257,7 +257,7 @@ Base: 9c1d0e2 | Current: M2 | Status: in progress
 **Day 3 — verify and ship.**
 
 ```
-/spec-verify add-refund     # spec-check 5/5 ACs covered, full Verify, one independent review
+/spec-verify add-refund     # spec-check 5/5 ACs covered, full Verify, one independent review; all green → push the branch
 /spec-ship add-refund       # refund requirements → spec/specs/refund/spec.md, change archived, then merge / PR / keep / discard
 ```
 

@@ -111,9 +111,9 @@ None.
 
 ## Approval
 
-Commit both files on the feature branch, then ask:
+Do not commit; `/spec-execute` commits the spec and plan when it creates the branch. Then ask:
 
-> "Plan committed in `spec/changes/<change-name>/plan.md`. Please review it; tell me what to change before we start."
+> "Plan written in `spec/changes/<change-name>/plan.md`. Please review it; tell me what to change before we start."
 
 Wait for an explicit yes, then invoke **executing-plans**.
 

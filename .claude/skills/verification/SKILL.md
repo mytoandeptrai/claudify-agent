@@ -48,7 +48,8 @@ Each milestone was already proven. Before finishing, prove the change as a whole
 5. One independent review: send `references/reviewer-prompt.md`, filled with the change name and the Base from progress.md, to ONE fresh general-purpose
    subagent. It is the only subagent in the workflow, because a reader without the author's context catches what the author cannot. Fix Critical, Important
    and Minor issues as one more pass of the milestone loop; record Followup items in Findings. One review, no second round.
-6. Write the results under Verification in progress.md, set Status `verified`, and suggest `/spec-ship <change-name>`.
+6. Only if every step above passed: write the results under Verification in progress.md, set Status `verified`, commit it, and push the branch
+   (`git push -u origin <branch>`). If anything failed, record it, keep Status `implemented`, and push nothing. Then suggest `/spec-ship <change-name>`.
 
 ## Two examples
 

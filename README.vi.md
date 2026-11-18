@@ -82,11 +82,11 @@ qua bước xác nhận.
 | Command                  | Skill            | Làm gì                                                                                   |
 |--------------------------|------------------|------------------------------------------------------------------------------------------|
 | `/spec-explore <ý tưởng>` | brainstorming | Hỏi từng câu, đưa 2–3 phương án, chốt design được duyệt; nếu bạn đồng ý thì lưu vào `spec/discussions/`. |
-| `/spec-define <change>`     | specification    | Tạo branch `feature/<change>` và `spec/changes/<change>/` (chuyển discussion đã lưu vào), viết `spec/`: `spec.md` chứa requirements và AC, thêm topic file khi cần. |
+| `/spec-define <change>`     | specification    | Tạo `spec/changes/<change>/` (chuyển discussion đã lưu vào) và viết `spec/`; chưa commit, chưa tạo branch: `spec.md` chứa requirements và AC, thêm topic file khi cần. |
 | `/spec-plan <change>`    | writing-plans    | Viết `plan.md` (milestone, task, AC ID và section spec mỗi milestone cần) và `progress.md`. |
-| `/spec-execute <change>`   | executing-plans  | Một milestone: test trước, code, Verify, tự review, một commit, cập nhật progress.md.   |
+| `/spec-execute <change>`   | executing-plans  | Lần đầu tạo branch và commit spec + plan. Sau đó mỗi lần một milestone: test trước, code, Verify, tự review, một commit. Không push. |
 | `/spec-status [change]`  | —                | Đọc progress.md và báo change đang ở đâu.                                                 |
-| `/spec-verify <change>`  | verification     | spec-check, Verify đầy đủ, rà từng AC, một reviewer subagent. Status → `verified`.       |
+| `/spec-verify <change>`  | verification     | spec-check, Verify đầy đủ, rà từng AC, một reviewer subagent. Chỉ khi tất cả pass: Status `verified`, push branch. |
 | `/spec-ship <change>`  | finishing-branch | Đồng bộ requirements vào `spec/specs/`, archive change, merge / PR / giữ / huỷ.          |
 | `/debug <triệu chứng>`   | debugging        | Tìm root cause có bằng chứng, viết regression test fail trước, rồi sửa.                  |
 | `/backbone-init`, `/backbone-sync` | —      | Tạo hoặc làm mới `BACKBONE.md`.                                                           |
@@ -185,7 +185,7 @@ Bạn:    có
 /spec-define add-refund
 ```
 
-Claude tạo branch `feature/add-refund`, chuyển discussion vào `spec/changes/add-refund/discussion.md`, và viết `spec/changes/add-refund/spec/spec.md`:
+Claude chuyển discussion vào `spec/changes/add-refund/discussion.md`, và viết `spec/changes/add-refund/spec/spec.md`:
 
 ```markdown
 ### refund (new)
@@ -223,7 +223,7 @@ Covers: refund/AC-4, AC-5
 ...
 ```
 
-**Ngày 2 — code, mỗi lần chạy một milestone.**
+**Ngày 2 — code, mỗi lần chạy một milestone.** Đến lúc này chưa có commit nào; lần chạy đầu tạo `feature/add-refund` và commit spec cùng plan.
 
 ```
 /spec-execute add-refund
@@ -258,7 +258,7 @@ Base: 9c1d0e2 | Current: M2 | Status: in progress
 **Ngày 3 — verify và ship.**
 
 ```
-/spec-verify add-refund     # spec-check 5/5 AC có test, Verify đầy đủ, một lượt review độc lập
+/spec-verify add-refund     # spec-check 5/5 AC có test, Verify đầy đủ, một lượt review độc lập; tất cả xanh → push branch
 /spec-ship add-refund       # requirement vào spec/specs/refund/spec.md, archive change, rồi merge / PR / giữ / huỷ
 ```
 

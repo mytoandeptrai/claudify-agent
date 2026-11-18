@@ -19,10 +19,13 @@ conversation.
 
 ## Start the change
 
-1. Create the branch `feature/<change-name>` from the base branch. The spec, plan and code are committed there.
+Nothing is committed and no branch is created here: the files stay in the working tree until `/spec-execute` creates the branch and commits them.
+
+1. Name the branch and its base from the `BACKBONE.md` Conventions (default `feature/<change-name>` from the default branch) and write them in the
+   `Branch:` field of `spec.md`. `/spec-execute` creates it.
 2. Find the saved discussion: the file the user names, or a `spec/discussions/*.md` whose topic matches; confirm a match with the user. In a new session,
    read it in place of the conversation. With no file and no conversation in context, there is no approved design: go back to **brainstorming**.
-3. `git mv` the discussion to `spec/changes/<change-name>/discussion.md`. The spec links to it for rejected options and reasons; it never copies them.
+3. Move (plain `mv`) the discussion to `spec/changes/<change-name>/discussion.md`. The spec links to it for rejected options and reasons; it never copies them.
 
 ## When to skip
 
@@ -53,7 +56,7 @@ requirement.
 
 ````markdown
 # <change-name>
-Status: draft | Depends on: <change or none> | Branch: feature/<change-name>
+Status: draft | Depends on: <change or none> | Branch: <branch> (from <base>)
 
 ## Why
 ## Scope
@@ -108,9 +111,9 @@ in one message, most important first.
 
 ## Approval
 
-Add the change as one line under "Open changes" in `BACKBONE.md`. Commit the spec (and the moved discussion) on the feature branch, then ask:
+Add the change as one line under "Open changes" in `BACKBONE.md`. Then ask:
 
-> "Spec committed in `spec/changes/<change-name>/spec/`. Please review it; tell me what to change before we write the plan."
+> "Spec written in `spec/changes/<change-name>/spec/`. Please review it; tell me what to change before we write the plan."
 
 Wait for an explicit yes. Then set `Status: approved` and invoke **writing-plans**. From here the spec is frozen; a changed decision goes back to
 **brainstorming**.

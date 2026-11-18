@@ -24,7 +24,7 @@ Typos, renames, a changed constant: just do them. A bug goes to **debugging**. A
 3. Offer 2–3 approaches with trade-offs and a recommendation. The user chooses.
 4. Present the design part by part; get a yes on each part before the next.
 5. Ask once: "Save this discussion to `spec/discussions/` so a new session can continue from it?" Write the file only on a yes (shape below).
-6. Offer to continue with **specification** now. Invoke nothing else. No branch or change folder exists yet: they start with the spec.
+6. Offer to continue with **specification** now. Invoke nothing else. No change folder exists yet: it starts with the spec. Nothing is committed before `/spec-execute`.
 
 ## Study before asking
 
@@ -79,7 +79,7 @@ Then size the work. Size sets the depth of the spec, never the number of changes
 
 ## Saved discussion
 
-Only when the user says yes. Save to `spec/discussions/YYYY-MM-DD-<topic>.md` and commit it. Record outcomes, not the conversation:
+Only when the user says yes. Write it to `spec/discussions/YYYY-MM-DD-<topic>.md`; do not commit it. Record outcomes, not the conversation:
 
 ````markdown
 # <topic>

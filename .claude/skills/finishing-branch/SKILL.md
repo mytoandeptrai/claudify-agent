@@ -86,7 +86,7 @@ git branch -d <feature-branch>
 **2. Pull Request**
 
 ```bash
-git push -u origin <feature-branch>
+git push   # the branch is on the remote since /spec-verify; this sends the archive commit
 gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## What changed
 <2-3 bullets>
@@ -109,13 +109,14 @@ EOF
 
 ```
 This permanently deletes:
-- branch <name>
+- branch <name>, locally and on the remote
 - commits: <list>
 
 Type 'discard' to confirm.
 ```
 
-Then check out the base branch, run `git branch -D <feature-branch>`, and remove the change from "Open changes" in `BACKBONE.md`.
+Then check out the base branch, run `git branch -D <feature-branch>` and `git push origin --delete <feature-branch>` (it was pushed by
+`/spec-verify`), and remove the change from "Open changes" in `BACKBONE.md`.
 
 **B1. Keep on base** — after step 2, report and stop.
 
